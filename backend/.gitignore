@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+backend/.env
+frontend/.env
+*.log
+docmatrix_data.json
+.DS_Store

@@ -1,0 +1,23 @@
+<svg width="300" height="300" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Modern document character mascot - Docky (3x larger) -->
+  <!-- White background with slight blue tint -->
+  
+  <!-- Background circle with subtle blue tint -->
+  <circle cx="50" cy="50" r="48" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+  
+  <!-- Document body -->
+  <rect x="30" y="25" width="40" height="50" rx="3" fill="#4F46E5" stroke="#3730A3" stroke-width="1.5"/>
+  
+  <!-- Document lines (text on the page) -->
+  <line x1="35" y1="32" x2="60" y2="32" stroke="white" stroke-width="1.2" opacity="0.7"/>
+  <line x1="35" y1="37" x2="60" y2="37" stroke="white" stroke-width="1.2" opacity="0.7"/>
+  <line x1="35" y1="42" x2="52" y2="42" stroke="white" stroke-width="1.2" opacity="0.7"/>
+  
+  <!-- Happy face on document -->
+  <circle cx="42" cy="55" r="2" fill="white"/>
+  <circle cx="58" cy="55" r="2" fill="white"/>
+  <path d="M 40 62 Q 50 68 60 62" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Subtle shadow -->
+  <ellipse cx="50" cy="80" rx="18" ry="3" fill="#000000" opacity="0.08"/>
+</svg>

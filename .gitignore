@@ -1,0 +1,52 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+*.log
+
+# Data (keep structure, ignore contents)
+data/db/*.db
+data/cache/*
+data/storage/blobs/*
+data/storage/temp/*
+data/backups/*
+
+# Environment
+.env
+.env.local
+backend/.env
+
+# Test files
+*.txt
+test_*.py
+check_*.py
+get_*.py
+list_*.py
+reset_*.py
+verify_*.py
+generate_*.py
+cleanup_*.py
