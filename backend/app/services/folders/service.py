@@ -308,7 +308,7 @@ class FoldersService:
     async def get_folder_tree(self, user_id: str) -> List[dict]:
         """Get complete folder tree"""
         all_folders = self.db.table("virtual_folders").select(
-            "id, name, parent_id, driver_id"
+            "id, name, parent_id, drive_id"
         ).eq("user_id", user_id).order("name").execute()
         
         folders = all_folders.data or []

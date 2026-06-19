@@ -284,41 +284,70 @@ class MegaService:
         files.sort(key=lambda f: f.get("name", "").lower())
         return files
 
-    def upload_file(self, user_id: str, filename: str, content: bytes) -> Dict[str, Any]: 
+    def upload_file(
+        self,
+        user_id: str,
+        filename: str,
+        content: bytes
+    ) -> Dict[str, Any]:
+
         _conn, mega_client, folder_node = self._login_for_user(user_id)
+
         temp_path = None
+        temp_dir = None
 
         try:
             import tempfile
             import os
 
-            temp_dir = tempfile.gettempdir()
-            print("FILENAME FROM ROUTER =", filename)
-            from tempfile import NamedTemporaryFile
-            with NamedTemporaryFile(
-                delete=False,
-                suffix=Path(filename).suffix
-            ) as temp_file:
-                temp_file.write(content)
-                temp_path = temp_file.name
+            temp_dir = tempfile.mkdtemp()
+
+            temp_path = os.path.join(
+                temp_dir,
+                filename
+            )
 
             with open(temp_path, "wb") as temp_file:
                 temp_file.write(content)
-            print("&&&&&&&&&&ORIGINAL FILE =", filename)
-            print("&&&&&&&&&&TEMP FILE =", temp_path)
-            uploaded_node = mega_client.upload(temp_path, folder_node)
-            print("&&&&&&&&&&&&UPLOADED NODE =", uploaded_node)
-            print("&&&&&&&&&&&&&NODE TYPE =", type(uploaded_node))
-            print(" ")
+
+            logger.warning("MEGA UPLOAD ORIGINAL FILE = %s", filename)
+            logger.warning("MEGA UPLOAD TEMP PATH = %s", temp_path)
+
+            uploaded_node = mega_client.upload(
+                temp_path,
+                folder_node
+            )
+
+            logger.warning(
+                "MEGA UPLOAD NODE = %s",
+                uploaded_node
+            )
+
             uploaded_meta = self._extract_node(uploaded_node)
 
-            file_id = (self._node_id(uploaded_meta) or self._node_id(uploaded_node) or "")
+            file_id = (
+                self._node_id(uploaded_meta)
+                or self._node_id(uploaded_node)
+                or ""
+            )
 
-            return { "file_id": str(file_id),"name": filename,"size_bytes": len(content),"uploaded_at": datetime.utcnow().isoformat(),}
+            return {
+                "file_id": str(file_id),
+                "name": filename,
+                "size_bytes": len(content),
+                "uploaded_at": datetime.utcnow().isoformat()
+            }
 
         finally:
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
+            try:
+                if temp_path and os.path.exists(temp_path):
+                    os.remove(temp_path)
+
+                if temp_dir and os.path.exists(temp_dir):
+                    os.rmdir(temp_dir)
+
+            except Exception:
+                pass
 
     def _find_file_node(self, user_id: str, file_id: str) -> Tuple[Any, Dict[str, Any]]:
         print("\n===== FIND FILE NODE =====")
@@ -399,10 +428,66 @@ class MegaService:
                 raise
         
     
-    def delete_file(self, user_id: str, file_id: str) -> None:
-        mega_client, file_entry = self._find_file_node(user_id, file_id)
-        node = file_entry.get("node")
-        mega_client.destroy(node)
+    def delete_file(
+        self,
+        user_id: str,
+        file_id: str
+    ) -> None:
 
+        logger.warning("=================================================")
+        logger.warning("MEGA DELETE STARTED")
+        logger.warning("FILE ID = %s", file_id)
+        logger.warning("FILE ID = %s", file_id)
+
+        mega_client, file_entry = self._find_file_node(
+            user_id,
+            file_id
+        )
+
+        logger.warning(
+            "FILE ENTRY = %s",
+            file_entry
+        )
+
+        node = file_entry.get("node")
+
+        logger.warning(
+            "NODE = %s",
+            node
+        )
+
+        if not node:
+            raise ValueError("MEGA node not found")
+
+        try:
+            node_id = (
+                node.get("h")
+                if isinstance(node, dict)
+                else node
+            )
+
+            logger.warning(
+                "NODE ID = %s",
+                node_id
+            )
+
+            if not node_id:
+                raise ValueError("Unable to determine MEGA node id")
+
+            mega_client.destroy(node_id)
+
+            logger.warning(
+                "MEGA FILE DELETED SUCCESSFULLY -> %s",
+                file_id
+            )
+
+        except Exception as e:
+            logger.exception(
+                "MEGA DELETE FAILED -> %s",
+                str(e)
+            )
+            raise
+
+        logger.warning("=================================================")
 
 mega_service = MegaService()

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
+from dateutil.parser import isoparse
 
 from ...middleware.auth import get_current_user
 from ...config import settings
@@ -88,7 +89,7 @@ async def mega_status(user: dict = Depends(get_current_user)):
             connected=True,
             mega_email=getattr(conn, "mega_email", None),
             folder_name=getattr(conn, "folder_name", None),
-            connected_at=datetime.fromisoformat(conn.created_at)
+            connected_at = isoparse(conn.created_at)
             if getattr(conn, "created_at", None)
             else None,
             warning=_mega_warning_message(),
