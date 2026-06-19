@@ -57,6 +57,7 @@ class FolderTreeNode(BaseModel):
     id: str
     name: str
     parent_id: Optional[str] = None
+    drive_id: Optional[str] = None
     children: List["FolderTreeNode"] = []
     
     class Config:

@@ -96,7 +96,7 @@ class FoldersService:
                     "deleted_at", "null"
                 ).execute()
                 folder["file_count"] = count.count if hasattr(count, 'count') else 0
-        
+        print("FOLDERS FROM DB:", folders)
         return [self._enrich_folder(f) for f in folders]
     
     async def get_folder(self, user_id: str, folder_id: str) -> dict:

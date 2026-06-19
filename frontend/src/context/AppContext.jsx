@@ -214,6 +214,7 @@ const mapCloudFolderToItem = (folder) => {
 };
 
 
+
 const flattenFolderTree = (nodes = [], parentId = null) => {
   const flattened = [];
   for (const node of nodes || []) {
@@ -507,7 +508,7 @@ console.log("MEGA STATUS:", megaStatus);
       const cloudDocs = (result.documents || []).map(mapCloudDocumentToItem);
       const cloudFolders = flattenFolderTree(Array.isArray(folderTree) ? folderTree : [])
         .map(mapCloudFolderToItem);
-
+      console.log("CLOUD FOLDERS:", cloudFolders);
       let megaItems = [];
       console.log("MEGA STATUS FULL:", megaStatus);
       if (megaStatus?.connected) {
