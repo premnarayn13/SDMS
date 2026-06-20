@@ -70,6 +70,7 @@ class BreadcrumbItem(BaseModel):
     name: str
 
 
+
 class MoveFolderRequest(BaseModel):
     """Move folder request"""
     target_parent_id: Optional[str] = None

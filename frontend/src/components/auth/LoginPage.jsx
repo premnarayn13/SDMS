@@ -5,10 +5,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/Docmatrix_logo.png';
 import { createAdminSession, validateAdminLogin, isAdminAuthenticated } from '../admin/adminAuth';
 import { 
-  Mail, Lock, Eye, EyeOff, AlertCircle, Loader2,
-  FileText, Cloud, Search, ChevronRight
+  Mail, Lock, Eye, EyeOff, AlertCircle, Loader2,FileText,
+  Cloud, Search, ChevronRight
 } from 'lucide-react';
 
 // Google logo SVG
@@ -110,13 +111,14 @@ export default function LoginPage() {
       style={{ fontFamily: 'Manrope, Space Grotesk, Segoe UI, sans-serif' }}
     >
       <header className="absolute top-0 left-0 right-0 z-20 border-b border-cyan-100/20 bg-blue-950/55 backdrop-blur-xl">
-        <div className="w-full px-5 lg:px-9 py-5 flex items-center gap-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-900/40">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-slate-100 text-2xl lg:text-3xl font-extrabold tracking-tight">DocMatrix</span>
-          </div>
+        <div className="w-full h-20 px-5 lg:px-9 flex items-center gap-5">
+          <div className="flex items-center">
+          <img
+            src={logo}
+            alt="DocMatrix"
+            className="w-48 h-auto object-contain"
+          />
+        </div>
 
           <div className="flex-1 flex items-center gap-2">
             <nav className="flex-1 flex items-center justify-center gap-1 text-[19px] font-semibold">
