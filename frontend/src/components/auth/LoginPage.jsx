@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import logo from '../../assets/Docmatrix_logo.png';
+import logo from '../../assets/Logo_DocMatrix.png';
 import { createAdminSession, validateAdminLogin, isAdminAuthenticated } from '../admin/adminAuth';
 import { 
   Mail, Lock, Eye, EyeOff, AlertCircle, Loader2,FileText,

@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { formatSize, Icons } from '../utils/helpers';
 import { driveSettingsApi, megaSettingsApi, storageUtils } from '../utils/settingsApi';
 import TreeView from './TreeView';
+import logo from '../assets/Logo_DocMatrix.png';
 
 // Icon component to render SVG icons safely
 const Icon = ({ name, size = 18, className = '' }) => {
@@ -144,13 +145,13 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
       style={{ width: `${width}px` }}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <Icon name="file" size={16} className="text-navy-900" />
-          </div>
-          <span className="font-semibold text-base tracking-tight">DocMatrix</span>
-        </div>
+      <div className="h-20 flex items-center justify-center px-3 border-b border-white/10">
+        <img
+          src={logo}
+          alt="DocMatrix"
+          className="max-h-17 w-auto object-contain"
+        />
+        
       </div>
 
       {/* Navigation */}
