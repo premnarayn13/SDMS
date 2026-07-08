@@ -57,6 +57,7 @@ export default function ContextMenu({
   onConvertWordsToPDF,
   onCombineImagesToPDF,
   onNewFolder,
+  onOpenWithGoogleDocs,
   onUpload
 }) {
   const menuRef = useRef(null);
@@ -139,8 +140,24 @@ export default function ContextMenu({
             </>
           ) : (
             <>
-              <MenuItem icon="externalLink" label="Open" shortcut="Enter" onClick={onOpen} />
-              <MenuItem icon="download" label="Download" onClick={onDownload} />
+              <MenuItem
+                  icon="externalLink"
+                  label="Open"
+                  shortcut="Enter"
+                  onClick={onOpen}
+              />
+
+              <MenuItem
+                  icon="externalLink"
+                  label="Open with Google Docs"
+                  onClick={onOpenWithGoogleDocs}
+              />
+
+              <MenuItem
+                  icon="download"
+                  label="Download"
+                  onClick={onDownload}
+              />
               <Divider />
               <MenuItem icon="scissors" label="Cut" shortcut="Ctrl+X" onClick={onCut} />
               <MenuItem icon="copy" label="Copy" shortcut="Ctrl+C" onClick={onCopy} />

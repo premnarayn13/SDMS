@@ -796,6 +796,60 @@ function AppContent({ user, onSettingsClick, onLogout }) {
     showToast('Download started');
   }, [selectedItems, items, actions, showToast]);
 
+  const handleOpenWithGoogleDocs = useCallback(() => {
+
+    if (selectedItems.length !== 1) return;
+
+    const item = items.find(
+        i => String(i.id) === String(selectedItems[0])
+    );
+
+    if (!item) return;
+
+    if (!item.driveFileId) {
+        showToast("This file is not stored in Google Drive.", "warning");
+        return;
+    }
+
+    const name = (item.name || "").toLowerCase();
+
+    let url = "";
+
+    if (
+        name.endsWith(".doc") ||
+        name.endsWith(".docx")
+    ) {
+
+        url = `https://docs.google.com/document/d/${item.driveFileId}/edit`;
+
+    } else if (
+        name.endsWith(".xls") ||
+        name.endsWith(".xlsx")
+    ) {
+
+        url = `https://docs.google.com/spreadsheets/d/${item.driveFileId}/edit`;
+
+    } else if (
+        name.endsWith(".ppt") ||
+        name.endsWith(".pptx")
+    ) {
+
+        url = `https://docs.google.com/presentation/d/${item.driveFileId}/edit`;
+
+    } else {
+
+        showToast(
+            "Google Docs editing is not available for this file.",
+            "warning"
+        );
+
+        return;
+    }
+
+    window.open(url, "_blank");
+
+}, [selectedItems, items, showToast]);
+
   // Cut/Copy/Paste handlers
   const handleCut = useCallback(() => {
     if (selectedItems.length === 0) return;
@@ -1443,6 +1497,7 @@ function AppContent({ user, onSettingsClick, onLogout }) {
         canConvertWordsToPDF={selectionCapabilities.canConvertWordsToPDF}
         canCombineImagesToPDF={selectionCapabilities.canCombineImagesToPDF}
         onOpen={handleOpenFile}
+        onOpenWithGoogleDocs={handleOpenWithGoogleDocs}
         onDownload={handleDownload}
         onCut={handleCut}
         onCopy={handleCopy}
