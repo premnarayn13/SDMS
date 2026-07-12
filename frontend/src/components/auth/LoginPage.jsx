@@ -123,11 +123,11 @@ export default function LoginPage() {
           <div className="flex-1 flex items-center gap-2">
             <nav className="flex-1 flex items-center justify-center gap-1 text-[19px] font-semibold">
               <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/platform/features">Features</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/platform/details">About</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/platform/data">Data</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/platform/guide">Docs</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/platform/guide">Support</Link>
+              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
+              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
+              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
+              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
+              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
               <button
                 type="button"
                 onClick={goToAdminLogin}

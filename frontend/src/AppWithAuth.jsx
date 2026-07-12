@@ -23,6 +23,13 @@ import { AdminSpecialLogin, AdminMissionControl, isAdminAuthenticated } from './
 // Settings
 import { SettingsPage, StorageManagerPage } from './components/settings';
 
+// Public Presentation Pages
+import FeaturesPage from './components/presentation/FeaturesPage';
+import AboutPage from './components/presentation/AboutPage';
+import DataPage from './components/presentation/DataPage';
+import DocsPage from './components/presentation/DocsPage';
+import SupportPage from './components/presentation/SupportPage';
+
 // Legacy App Content (the main document management interface)
 // Note: App component already includes AppProvider wrapper
 import App from './App';
@@ -125,6 +132,13 @@ export default function AppWithAuth() {
         <Route path="/storage" element={<StorageManagerPage />} />
 
         <Route path="/platform/:section" element={<PlatformInfoPage />} />
+
+        {/* Public Presentation Routes */}
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/data" element={<DataPage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/support" element={<SupportPage />} />
         
         {/* Main App */}
         <Route path="/*" element={<LegacyApp />} />
@@ -163,6 +177,13 @@ export default function AppWithAuth() {
       <Route path="/auth/callback" element={<GoogleCallback />} />
       <Route path="/auth/google/callback" element={<GoogleCallback />} />
       <Route path="/platform/:section" element={<PlatformInfoPage />} />
+
+      {/* Public Presentation Routes */}
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/data" element={<DataPage />} />
+      <Route path="/docs" element={<DocsPage />} />
+      <Route path="/support" element={<SupportPage />} />
 
       <Route path="/drive-setup" element={
         <ProtectedRoute>
