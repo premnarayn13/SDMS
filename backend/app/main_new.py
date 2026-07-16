@@ -24,7 +24,6 @@ from .models import (
 
 # New imports
 from .config import settings
-from .middleware.cors import setup_cors
 from .services import (
     auth_router,
     users_router,

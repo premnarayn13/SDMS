@@ -65,9 +65,6 @@ def _cleanup_temp_file(path: str) -> None:
 
 @router.get("/status", response_model=MegaStatusResponse)
 async def mega_status(user: dict = Depends(get_current_user)):
-    print("\n========== MEGA STATUS API ==========")
-    print("USER ID =", user["id"])
-
     started_at = time.perf_counter()
 
     try:
@@ -75,13 +72,6 @@ async def mega_status(user: dict = Depends(get_current_user)):
             mega_service.get_connection,
             user["id"]
         )
-
-        print("CONNECTION OBJECT =", conn)
-        print("TYPE =", type(conn))
-        print("VALUE =", conn)
-
-        if not conn:
-            print("NO CONNECTION FOUND")
 
         _log_mega_timing("status", started_at, user["id"], True)
 
@@ -97,9 +87,7 @@ async def mega_status(user: dict = Depends(get_current_user)):
         )
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("ACTUAL ERROR =", repr(e))
+        logger.exception(f"Failed to fetch MEGA status for user {user.get('id')}")
 
         _log_mega_timing(
             "status",
@@ -172,7 +160,7 @@ async def upload_to_mega(
     """Upload a file into the user's dedicated MEGA DocMatrix folder."""
     started_at = time.perf_counter()
     try:
-        print("UPLOAD RECEIVED NAME =", file.filename)
+        logger.info(f"MEGA upload started: filename={file.filename} user_id={user.get('id')}")
         content = await file.read()
         result=await run_in_threadpool(
             mega_service.upload_file,
@@ -181,7 +169,6 @@ async def upload_to_mega(
             content,
         )
         _log_mega_timing("upload", started_at, user["id"], True)
-        print("UPLOAD RESULT =", result)
         return {"success": True,"message": "File uploaded to MEGA successfully","file_id": result["file_id"],"name": result["name"],}
     except ValueError as exc:
         _log_mega_timing("upload", started_at, user["id"], False, str(exc))

@@ -123,12 +123,6 @@ class MegaService:
         return None
 
     def _login(self, email: str, password: str) -> Any:
-        print("\n===== LOGIN DEBUG =====")
-        print("EMAIL :", repr(email))
-        print("PASSWORD LENGTH :", len(password))
-        print("PASSWORD :", repr(password))
-        print("=======================\n")
-
         mega = Mega()
         return mega.login(email, password)
 
@@ -244,8 +238,6 @@ class MegaService:
                         continue
                     if meta.get("t") != 0:
                         continue
-                    print("META =", meta)
-                    print("NODE NAME =", self._node_name(mega_client, meta))
                     files.append({
                         "file_id": str(meta.get("h") or file_id),
                         "name": self._node_name(mega_client, meta) or str(meta.get("name") or f"file_{file_id}"),
@@ -350,30 +342,16 @@ class MegaService:
                 pass
 
     def _find_file_node(self, user_id: str, file_id: str) -> Tuple[Any, Dict[str, Any]]:
-        print("\n===== FIND FILE NODE =====")
-        print("REQUESTED FILE ID =", file_id)
-
         _conn, mega_client, folder_node = self._login_for_user(user_id)
-
-        print("LOGIN SUCCESS")
-
         files = self._list_files_in_folder(mega_client, folder_node)
-
-        print("FILES FOUND =", len(files))
 
         match = next(
             (f for f in files if str(f.get("file_id")) == str(file_id)),
             None
         )
 
-        print("MATCH =", match)
-
         if not match:
             raise ValueError("File not found")
-
-        node = match.get("node")
-
-        print("NODE FROM MATCH =", node)
 
         return mega_client, match
     
@@ -382,15 +360,10 @@ class MegaService:
             user_id,
             file_id
         )
-        print("1. ###################  Don FILE ENTRY =", file_entry)
-        #print("2. Don NODE =", node)
         node = file_entry["node"]
         with TemporaryDirectory() as temp_dir:
 
             try:
-                print("3. Don ################ FILE ENTRY =", file_entry)
-                print("4. Don ################  NODE =", node)
-                print(" ")
                 saved_path = mega_client.download(
                     (file_entry["file_id"], node),
                     dest_path=temp_dir
@@ -398,9 +371,6 @@ class MegaService:
 
                 if not saved_path:
                     raise ValueError("Download failed")
-                print("5.####################### Don FILE ENTRY =", file_entry)
-                print("6.####################### Don NODE =", node)
-                print(" ")
                 source = Path(saved_path)
 
                 with NamedTemporaryFile(

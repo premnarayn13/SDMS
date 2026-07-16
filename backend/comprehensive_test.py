@@ -3,7 +3,8 @@ Comprehensive Login Test
 Simulates what the backend does during login
 """
 import sys
-sys.path.insert(0, 'D:\\SDMS\\SDMS_Clone\\backend')
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from app.utils.security import password_handler
 from supabase import create_client, Client

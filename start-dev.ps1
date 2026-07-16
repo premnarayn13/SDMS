@@ -1,8 +1,8 @@
 Write-Host "Starting DocMatrix backend + frontend..." -ForegroundColor Cyan
 
-$backendPath = "d:/SDMS/SDMS_Clone/backend"
-$frontendPath = "d:/SDMS/SDMS_Clone/frontend"
-$pythonExe = "d:/SDMS/.venv/Scripts/python.exe"
+$backendPath = "$PSScriptRoot/backend"
+$frontendPath = "$PSScriptRoot/frontend"
+$pythonExe = "$PSScriptRoot/backend/venv/Scripts/python.exe"
 
 if (-not (Test-Path $pythonExe)) {
   Write-Host "Python venv not found at $pythonExe" -ForegroundColor Red
