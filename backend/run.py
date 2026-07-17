@@ -30,4 +30,4 @@ if __name__ == "__main__":
         else:
             print(f"☁️  CLOUD MODE - Using Supabase")
     
-    uvicorn.run(module, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(module, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)),reload=False)
