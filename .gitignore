@@ -42,6 +42,7 @@ backend/.env
 
 # Test files
 *.txt
+!backend/runtime.txt
 test_*.py
 check_*.py
 get_*.py
