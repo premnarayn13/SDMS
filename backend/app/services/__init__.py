@@ -8,7 +8,7 @@ from .drive import router as drive_router
 from .documents import documents_router
 from .folders import folders_router
 from .activity import activity_router
-from .mega.router import router as mega_router
+#from .mega.router import router as mega_router
 
 __all__ = [
     "auth_router",
