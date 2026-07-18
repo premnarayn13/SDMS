@@ -17,5 +17,5 @@ __all__ = [
     "documents_router",
     "folders_router",
     "activity_router",
-    "mega_router"
+    #"mega_router"
 ]

@@ -31,7 +31,7 @@ from .services import (
     documents_router,
     folders_router,
     activity_router,
-    mega_router,
+    #mega_router,
 )
 from .services.agent import agent_router
 
@@ -136,7 +136,7 @@ app.include_router(drive_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(folders_router, prefix="/api/v1")
 app.include_router(activity_router, prefix="/api/v1")
-app.include_router(mega_router, prefix="/api/v1")
+#app.include_router(mega_router, prefix="/api/v1")
 app.include_router(agent_router, prefix="/api/v1")  # Docky AI Agent
 
 
