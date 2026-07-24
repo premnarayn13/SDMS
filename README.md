@@ -1,70 +1,76 @@
-# DocMatrix (SDMS)
+# DocMatrix (Smart Document Management System - SDMS)
 
-DocMatrix is a smart document management system for browsing, previewing, and working with files in one place. It combines a web-based file manager, multi-format viewer, and AI-assisted document tooling.
+DocMatrix is an enterprise-grade, AI-powered Smart Document Management System (SDMS) designed for browsing, previewing, managing, compressing, and collaborating on documents seamlessly. It combines a modern web file manager, dynamic multi-format viewers, Google Drive / MEGA cloud storage integrations, and AI agent assistance.
 
-Repository: https://github.com/premnarayn13/AI-SmartDocumentManagmentSystem.git
+---
 
-## What It Supports
+## ✨ Features & Capabilities
 
-- Secure sign-in and user sessions
-- Folder and file browsing
-- PDF viewing with power tools and annotations
-- DOCX and PPTX preview and editing workflows
-- CSV viewing and basic row or cell operations
-- Image, video, and audio inspection tools
-- MEGA cloud storage integration
-- Version history and file activity features
+- 🔐 **Authentication & Security**: Multi-tier authentication (Supabase / Local DB) with session management and user permissions.
+- 📁 **File & Folder Management**: Drag-and-drop uploads, virtual folder trees, move, rename, duplicate, trash/restore, and breadcrumbs.
+- 📦 **ZIP Archive Tools (Compression & Extraction)**:
+  - Compress single files or entire folders into `.zip` archives.
+  - Right-click contextual **Extract ZIP** to unpack archives directly into your workspace.
+- ☁️ **Cloud Storage Integrations**:
+  - **Google Drive Integration**: Connect multiple Google Drive accounts with automatic token refresh and allocation limits.
+  - **MEGA Storage**: Native MEGA cloud storage connection for direct upload/download.
+- 📄 **Multi-Format Document Viewers & Power Tools**:
+  - **PDF Power Tools**: Annotation, text extraction, page splitting, password protection, and merging.
+  - **Office Documents**: Preview and edit DOCX, PPTX, XLSX, and CSV files in-browser.
+  - **Media Workbench**: Image workbench, video playback, and audio inspection.
+- 🤖 **Docky AI Agent Assistant**: Embedded AI chat agent for document summarization, search, and intelligent workflow assistance.
+- 🔗 **Sharing & Collaboration**: Create public share links, manage file access, and inspect detailed version history & activity logs.
 
-## Quick Start
+---
 
-1. Clone the repository.
+## 🚀 Quick Start
+
+### Prerequisites
+- **Python**: 3.10 or newer
+- **Node.js**: 18.x or newer
+- **npm**: 9.x or newer
+
+### 1. Clone & Set Up
 
 ```powershell
-git clone https://github.com/premnarayn13/AI-SmartDocumentManagmentSystem.git
-cd AI-SmartDocumentManagmentSystem/SDMS_Clone
+git clone https://github.com/premnarayn13/SDMS.git
+cd SDMS
 ```
 
-2. Copy the backend environment file and add your values.
+### 2. Environment Configuration
+
+Copy the example environment file for the backend and fill in your credentials:
 
 ```powershell
 Copy-Item backend/.env.example backend/.env
 ```
 
-3. Start the app.
+### 3. Running Development Servers
+
+Start both the FastAPI backend server and Vite frontend server:
 
 ```powershell
-./start-dev.ps1
+# Start Backend
+cd backend
+python run.py
+
+# In a separate terminal, start Frontend
+cd frontend
+npm run dev
 ```
 
-4. Open the web app.
+Open your browser at: `http://localhost:3000`
 
-- http://localhost:3000
+---
 
-## Requirements
+## 🛠️ Tech Stack
 
-- Python 3.11 or newer
-- Node.js 18 or newer
-- npm
+- **Frontend**: React, Vite, TailwindCSS, Lucide Icons, JSZip, PDF.js, Mammoth.js, SheetJS
+- **Backend**: Python, FastAPI, Uvicorn, Supabase Client, Google Drive API, PyPDF2
+- **Database / Auth**: Supabase (PostgreSQL & Auth Services) / SQLite fallback
 
-## Project Structure
+---
 
-```text
-SDMS_Clone/
-  backend/
-  frontend/
-  supabase/
-  start-dev.ps1
-```
+## 🛡️ License & Contributing
 
-## MEGA Storage
-
-You can connect MEGA from the app settings. After connecting, the app can browse, upload, download, and delete files through that storage connection.
-
-## Security Notes
-
-- Do not commit real secrets, API keys, or credentials.
-- Keep environment values in `backend/.env` and out of source control.
-
-## License
-
-See the license files included in this repository.
+Contributions are welcome! Please ensure environment keys and credentials remain out of source control (`.env`).
