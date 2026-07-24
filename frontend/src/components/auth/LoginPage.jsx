@@ -185,12 +185,11 @@ export default function LoginPage() {
               <div className="text-center mb-6">
                 <h2 className="text-xl font-extrabold tracking-tight text-cyan-50">Welcome</h2>
                 <p className="text-cyan-100/85 mt-1.5 text-sm">Sign in to your account</p>
-                <div className="flex justify-center mt-6 mb-2">
-                  <div className="relative w-20 h-20 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl animate-pulse"></div>
-                    <div className="relative w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30 transform rotate-3 transition-transform duration-300 hover:rotate-0">
-                      <Lock className="w-8 h-8 text-white" strokeWidth={2} />
-                    </div>
+                <div className="flex justify-center mt-6">
+                  <div className="w-20 h-20 bg-slate-200/90 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-slate-400 mt-2">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </div>
                 </div>
               </div>
