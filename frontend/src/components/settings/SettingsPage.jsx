@@ -167,7 +167,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--dm-ui-scale', String((uiCustomization.scale || 100) / 100));
+    const scaleValue = (uiCustomization.scale || 100) / 100;
+    // Use zoom on the root element so layout reflows correctly (unlike transform:scale which clips layout)
+    root.style.setProperty('--dm-ui-scale', String(scaleValue));
+    // Apply zoom directly so the page renders at the right scale
+    if (scaleValue !== 1) {
+      root.style.zoom = String(scaleValue);
+    } else {
+      root.style.zoom = '';
+    }
     root.style.setProperty('--dm-accent-color', uiCustomization.accentColor || '#102a43');
     root.style.setProperty('--dm-sidebar-font-size', `${uiCustomization.sidebarTextSize || 14}px`);
     root.style.setProperty('--dm-sidebar-font-weight', String(uiCustomization.sidebarTextWeight || 600));
@@ -1088,17 +1096,22 @@ export default function SettingsPage() {
                             <div>
                               <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
                                 <Type className="w-4 h-4" />
-                                Interface Scale: {uiCustomization.scale}%
+                                Interface Scale: {uiCustomization.scale}% {uiCustomization.scale === 100 ? '(Default)' : uiCustomization.scale > 100 ? '(Zoomed In)' : '(Zoomed Out)'}
                               </label>
                               <input
                                 type="range"
-                                min="90"
-                                max="115"
-                                step="1"
+                                min="75"
+                                max="110"
+                                step="5"
                                 value={uiCustomization.scale}
                                 onChange={(e) => setUiCustomization({ ...uiCustomization, scale: parseInt(e.target.value, 10) })}
                                 className="w-full"
                               />
+                              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                                <span>75% (Small)</span>
+                                <span>100% (Normal)</span>
+                                <span>110% (Large)</span>
+                              </div>
                             </div>
 
                             <div>

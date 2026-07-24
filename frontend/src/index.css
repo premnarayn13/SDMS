@@ -261,8 +261,6 @@ body {
   .settings-panel {
     @apply animate-slide-up;
     background: transparent;
-    transform: scale(var(--dm-ui-scale));
-    transform-origin: top center;
   }
 
   .settings-field-wrap {
