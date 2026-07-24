@@ -12,11 +12,8 @@ export default function ShareModal({ isOpen, onClose, item, onAddShare, onRemove
     try {
       const response = await sharingApi.generateShareLink(item.id);
 
-      setShareLink(
-        response.data.url ||
-        response.data.share_url ||
-        response.data.link
-      );
+      const shareUrl = `${window.location.origin}/share/${response.data.token}`;
+      setShareLink(shareUrl);
     } catch (err)  {
   console.error(
     'Share link generation failed:',

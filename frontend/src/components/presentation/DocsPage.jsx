@@ -74,7 +74,7 @@ export default function DocsPage() {
     <PublicLayout>
       {/* 1. Documentation Hero */}
       <section className="relative min-h-[50vh] flex items-center justify-center pt-16 pb-12 overflow-hidden border-b border-slate-900 bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center space-y-6 relative z-10">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
           <span className="inline-flex items-center gap-1 bg-cyan-950/50 border border-cyan-500/35 px-3.5 py-1.5 rounded-full text-xs font-semibold text-cyan-400">
             <BookOpen className="w-4 h-4" /> Platform Documentation
           </span>
@@ -89,7 +89,7 @@ export default function DocsPage() {
 
       {/* 2. Sticky Left Navigation Layout */}
       <section className="py-16 relative">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
           
           {/* Sticky Left Sidebar navigation */}
           <div className="lg:col-span-3 lg:sticky lg:top-28 h-fit space-y-4">
@@ -155,7 +155,7 @@ export default function DocsPage() {
 
       {/* 3. Interactive Toolbar Playground */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
@@ -222,7 +222,7 @@ export default function DocsPage() {
 
       {/* 4. Comprehensive Accordion FAQs */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-4xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Frequently Asked Questions</h2>

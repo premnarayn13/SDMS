@@ -213,7 +213,17 @@ class ToolRegistry:
         if exact:
             return exact
 
-        return next((f for f in folders if target in (f.get("name") or "").strip().lower()), None)
+        # Better partial match
+        target_compact = "".join(ch for ch in target if ch.isalnum())
+        for f in folders:
+            name = (f.get("name") or "").strip().lower()
+            if target in name:
+                return f
+            name_compact = "".join(ch for ch in name if ch.isalnum())
+            if target_compact and target_compact in name_compact:
+                return f
+
+        return None
 
     def _normalize_file_payload(self, file_item: dict) -> dict:
         return {
@@ -330,13 +340,25 @@ class ToolRegistry:
             documents = await self._get_cloud_files(user_id=user_id, view="all", page_size=500)
             exact = None
             partial = None
+            
+            target_no_ext = target.rsplit(".", 1)[0] if "." in target else target
+            target_compact = "".join(ch for ch in target_no_ext if ch.isalnum())
+
             for document in documents:
                 name = (document.get("display_name") or document.get("original_name") or "").lower()
-                if name == target:
+                name_no_ext = name.rsplit(".", 1)[0] if "." in name else name
+                
+                if name == target or name_no_ext == target_no_ext:
                     exact = document
                     break
-                if target in name and partial is None:
+                
+                if (target in name or target_no_ext in name_no_ext) and partial is None:
                     partial = document
+                    
+                name_compact = "".join(ch for ch in name_no_ext if ch.isalnum())
+                if target_compact and target_compact in name_compact and partial is None:
+                    partial = document
+
             return exact or partial
         except Exception:
             return None

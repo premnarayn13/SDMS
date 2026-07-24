@@ -119,34 +119,34 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex-1 flex items-center gap-2">
-            <nav className="flex-1 flex items-center justify-center gap-1 text-[19px] font-semibold">
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
-              <Link className="min-w-[102px] text-center px-5 py-2.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
+            <nav className="flex-1 flex items-center justify-center gap-1 text-[15px] font-semibold">
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
+              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
               <button
                 type="button"
                 onClick={goToAdminLogin}
-                className="min-w-[102px] text-center px-5 py-2.5 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors"
+                className="min-w-[102px] text-center px-4 py-2 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors"
               >
                 Admin
               </button>
             </nav>
 
-            <div className="hidden xl:flex items-center relative w-80">
+            <div className="hidden xl:flex items-center relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-200/75" />
               <input
                 type="text"
                 placeholder="Search files"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-blue-900/45 border border-cyan-100/25 text-cyan-50 placeholder-cyan-100/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
+                className="w-full pl-9 pr-3 py-2 rounded-lg bg-blue-900/45 border border-cyan-100/25 text-cyan-50 placeholder-cyan-100/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/70 text-sm"
               />
             </div>
 
             <Link
               to="/login"
-              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-base font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-900/35"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-sm font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-900/35"
             >
               Sign in
             </Link>
@@ -154,9 +154,10 @@ export default function RegisterPage() {
         </div>
       </header>
 
+      <div className="flex w-full max-w-7xl mx-auto h-full pt-16">
       {/* Left Panel - Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-10 pt-28 lg:px-8 lg:pt-32">
-        <div className="w-full max-w-[33rem]">
+      <div className="flex-1 flex items-center justify-center px-6 py-10 lg:px-8">
+        <div className="w-full max-w-md relative">
           
           {/* Card */}
           <div className="bg-blue-900/86 backdrop-blur-2xl rounded-2xl p-6 lg:p-7 border border-cyan-200/30 shadow-[0_26px_76px_rgba(4,18,50,0.58)]">
@@ -172,22 +173,6 @@ export default function RegisterPage() {
                 <span className="text-sm">{error}</span>
               </div>
             )}
-            
-            {/* Google Login */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </button>
-            
-            {/* Divider */}
-            <div className="flex items-center gap-4 my-4">
-              <div className="flex-1 h-px bg-gray-600" />
-              <span className="text-gray-500 text-sm">or</span>
-              <div className="flex-1 h-px bg-gray-600" />
-            </div>
             
             {/* Register Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,11 +195,11 @@ export default function RegisterPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-1.5">
-                  Email
+                <label className="block text-sm font-semibold text-cyan-100/95 mb-2">
+                  Email or Admin ID
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-600/90" />
                   <input
                     type="email"
                     name="email"
@@ -356,28 +341,29 @@ export default function RegisterPage() {
       </div>
       
       {/* Right Panel - Visual */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center px-12 py-10 pt-28 lg:pt-32 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 py-10 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl" />
           <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
         
         <div className="relative w-full max-w-[560px] text-center lg:-translate-x-5">
-          <div className="mx-auto mb-7 flex items-center justify-center">
+          <div className="mx-auto mb-6 flex items-center justify-center">
             <img
               src="/docky-avatar.png"
               alt="DocMatrix Docky"
-              className="w-full max-w-[410px] h-auto object-contain"
+              className="w-full max-w-[320px] h-auto object-contain"
             />
           </div>
-          <h2 className="text-[2.05rem] font-bold text-white mb-4">
+          <h2 className="text-3xl font-bold text-white mb-3">
             Secure Document Management
           </h2>
-          <p className="text-slate-300/85 text-[1.02rem] max-w-lg mx-auto leading-relaxed">
+          <p className="text-cyan-100/85 text-base max-w-lg mx-auto leading-relaxed">
             Join thousands of users who trust DocMatrix for their document management needs. 
             Your data, your storage, your control.
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

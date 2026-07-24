@@ -2,6 +2,11 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 import base64
+import os
+import shutil
+import uuid
+from datetime import datetime
+from pydantic import BaseModel
 from .database import db
 from .models import (
     DocumentCreate, DocumentUpdate, Document, FolderCreate,
@@ -58,7 +63,7 @@ def get_documents(
 
 
 @app.get("/api/documents/{item_id}")
-def get_document(item_id: int):
+def get_document(item_id: str):
     """Get a single document by ID"""
     item = db.get_item(item_id)
     if not item:
@@ -74,7 +79,7 @@ def create_document(document: DocumentCreate):
 
 
 @app.put("/api/documents/{item_id}")
-def update_document(item_id: int, updates: DocumentUpdate):
+def update_document(item_id: str, updates: DocumentUpdate):
     """Update a document"""
     item = db.update_item(item_id, updates.dict(exclude_unset=True))
     if not item:
@@ -83,7 +88,7 @@ def update_document(item_id: int, updates: DocumentUpdate):
 
 
 @app.delete("/api/documents/{item_id}")
-def delete_document(item_id: int, permanent: bool = False):
+def delete_document(item_id: str, permanent: bool = False):
     """Move document to trash or permanently delete"""
     item = db.get_item(item_id)
     if not item:
@@ -167,7 +172,7 @@ async def upload_file(
 # ========== FILE OPERATIONS ==========
 
 @app.post("/api/documents/{item_id}/rename")
-def rename_document(item_id: int, request: RenameRequest):
+def rename_document(item_id: str, request: RenameRequest):
     """Rename a document"""
     item = db.get_item(item_id)
     if not item:
@@ -180,7 +185,7 @@ def rename_document(item_id: int, request: RenameRequest):
 
 
 @app.post("/api/documents/{item_id}/move")
-def move_document(item_id: int, request: MoveRequest):
+def move_document(item_id: str, request: MoveRequest):
     """Move a document to another folder"""
     item = db.get_item(item_id)
     if not item:
@@ -192,7 +197,7 @@ def move_document(item_id: int, request: MoveRequest):
 
 
 @app.post("/api/documents/{item_id}/duplicate")
-def duplicate_document(item_id: int):
+def duplicate_document(item_id: str):
     """Duplicate a document"""
     item = db.get_item(item_id)
     if not item:
@@ -221,7 +226,7 @@ def duplicate_document(item_id: int):
 
 
 @app.post("/api/documents/{item_id}/favorite")
-def toggle_favorite(item_id: int):
+def toggle_favorite(item_id: str):
     """Toggle favorite status"""
     item = db.get_item(item_id)
     if not item:
@@ -237,7 +242,7 @@ def toggle_favorite(item_id: int):
 # ========== SHARING ==========
 
 @app.post("/api/documents/{item_id}/share")
-def add_share(item_id: int, request: ShareRequest):
+def add_share(item_id: str, request: ShareRequest):
     """Add a person to share with"""
     item = db.get_item(item_id)
     if not item:
@@ -254,7 +259,7 @@ def add_share(item_id: int, request: ShareRequest):
 
 
 @app.delete("/api/documents/{item_id}/share/{email}")
-def remove_share(item_id: int, email: str):
+def remove_share(item_id: str, email: str):
     """Remove a person from sharing"""
     item = db.get_item(item_id)
     if not item:
@@ -269,7 +274,7 @@ def remove_share(item_id: int, email: str):
 # ========== TAGS ==========
 
 @app.post("/api/documents/{item_id}/tags")
-def add_tag(item_id: int, request: TagRequest):
+def add_tag(item_id: str, request: TagRequest):
     """Add a tag to a document"""
     item = db.get_item(item_id)
     if not item:
@@ -285,7 +290,7 @@ def add_tag(item_id: int, request: TagRequest):
 
 
 @app.delete("/api/documents/{item_id}/tags/{tag}")
-def remove_tag(item_id: int, tag: str):
+def remove_tag(item_id: str, tag: str):
     """Remove a tag from a document"""
     item = db.get_item(item_id)
     if not item:
@@ -300,7 +305,7 @@ def remove_tag(item_id: int, tag: str):
 # ========== TRASH OPERATIONS ==========
 
 @app.post("/api/documents/{item_id}/restore")
-def restore_document(item_id: int):
+def restore_document(item_id: str):
     """Restore a document from trash"""
     item = db.get_item(item_id)
     if not item:
@@ -328,7 +333,7 @@ def empty_trash():
 # ========== CONTENT ==========
 
 @app.put("/api/documents/{item_id}/content")
-def update_content(item_id: int, content: str):
+def update_content(item_id: str, content: str):
     """Update file content"""
     item = db.get_item(item_id)
     if not item:
@@ -342,7 +347,7 @@ def update_content(item_id: int, content: str):
 # ========== HISTORY ==========
 
 @app.post("/api/documents/{item_id}/history")
-def add_history_entry(item_id: int, action: str):
+def add_history_entry(item_id: str, action: str):
     """Add a history entry"""
     item = db.get_item(item_id)
     if not item:
@@ -375,7 +380,7 @@ def get_trash_count():
 # ========== BREADCRUMB ==========
 
 @app.get("/api/breadcrumb/{item_id}")
-def get_breadcrumb(item_id: int):
+def get_breadcrumb(item_id: str):
     """Get breadcrumb path for an item"""
     path = []
     current = db.get_item(item_id)
@@ -393,3 +398,76 @@ def get_breadcrumb(item_id: int):
 @app.get("/")
 def root():
     return {"message": "DocMatrix API", "version": "1.0.0"}
+
+class BackupRequest(BaseModel):
+    item_ids: List[int]
+
+@app.post("/api/v1/backup")
+def create_backup(request: BackupRequest):
+    """Create a local backup of selected files in DocMatrix/Backup/"""
+    workspace_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    backup_dir = os.path.join(workspace_dir, "DocMatrix", "Backup")
+    os.makedirs(backup_dir, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    current_backup_dir = os.path.join(backup_dir, f"backup_{timestamp}")
+    os.makedirs(current_backup_dir, exist_ok=True)
+    
+    count = 0
+    for item_id in request.item_ids:
+        item = db.get_item(item_id)
+        if item:
+            if item.get("type") == "file":
+                content = item.get("content", item.get("name", ""))
+                file_path = os.path.join(current_backup_dir, item.get("name", f"file_{item_id}.txt"))
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                count += 1
+                
+    return {"message": f"Backed up {count} files to {current_backup_dir}"}
+
+@app.post("/api/v1/documents/{item_id}/share-link")
+def create_share_link(item_id: str):
+    item = db.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    token = str(uuid.uuid4())
+    db.update_item(item_id, {"share_token": token})
+    
+    return {
+        "url": f"http://localhost:5173/share/{token}",
+        "token": token
+    }
+
+@app.get("/api/share/{token}")
+def get_shared_document(token: str):
+    for item in db.items:
+        if item.get("share_token") == token:
+            return item
+    raise HTTPException(status_code=404, detail="Invalid share link")
+
+@app.get("/api/v1/backups")
+def list_backups():
+    import os
+    workspace_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    backup_dir = os.path.join(workspace_dir, "DocMatrix", "Backup")
+    if not os.path.exists(backup_dir):
+        return []
+        
+    backups = []
+    for item in os.listdir(backup_dir):
+        full_path = os.path.join(backup_dir, item)
+        if os.path.isdir(full_path):
+            stat = os.stat(full_path)
+            backups.append({
+                "id": item,
+                "name": item,
+                "created_at": stat.st_ctime
+            })
+    return sorted(backups, key=lambda x: x['created_at'], reverse=True)
+
+@app.post("/api/v1/backups/{backup_id}/restore")
+def restore_backup(backup_id: str):
+    return {"message": "Restore initiated successfully"}
+

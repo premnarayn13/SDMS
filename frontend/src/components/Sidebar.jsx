@@ -36,8 +36,7 @@ const LABELS = [
 
 // Default drive sections (static)
 const DEFAULT_DRIVE_SECTIONS = [
-  { id: 'shared', name: 'Shared Drives', icon: 'users' },
-  { id: 'archive', name: 'Archive', icon: 'archive' },
+  { id: 'shared', name: 'Shared Drives', icon: 'users' }
 ];
 
 export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, width = 320 }) {

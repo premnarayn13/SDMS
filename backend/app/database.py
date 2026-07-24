@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 from pathlib import Path
 from .models import Document, HistoryItem, SharedItem
@@ -35,9 +35,9 @@ class Database:
     def get_all_items(self) -> List[dict]:
         return self.items
     
-    def get_item(self, item_id: int) -> Optional[dict]:
+    def get_item(self, item_id: Union[int, str]) -> Optional[dict]:
         for item in self.items:
-            if item["id"] == item_id:
+            if str(item["id"]) == str(item_id):
                 return item
         return None
     

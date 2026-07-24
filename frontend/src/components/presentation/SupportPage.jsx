@@ -51,7 +51,7 @@ export default function SupportPage() {
     <PublicLayout>
       {/* 1. Support Hero with Interactive Search */}
       <section className="relative min-h-[55vh] flex flex-col items-center justify-center pt-16 pb-12 overflow-hidden bg-slate-950/40 border-b border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center space-y-6 relative z-10 w-full flex flex-col items-center">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10 w-full flex flex-col items-center">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-cyan-950/40 border border-cyan-400/30 text-cyan-400">
             Intelligence Center
           </span>
@@ -85,7 +85,7 @@ export default function SupportPage() {
 
       {/* 2. Interactive Search Results Cards */}
       <section className="py-16 relative">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <AnimatePresence>
               {filteredTopics.map((topic, index) => (
@@ -128,7 +128,7 @@ export default function SupportPage() {
 
       {/* 3. Interactive Troubleshooter Flow */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/30">
-        <div className="max-w-4xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-950/50 border border-blue-500/25 text-blue-400">
@@ -296,7 +296,7 @@ export default function SupportPage() {
 
       {/* 4. Release Highlights Board (Software Versions log) */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Software Release Log</h2>
@@ -336,7 +336,7 @@ export default function SupportPage() {
 
       {/* 5. Live status uptime indicator panel */}
       <section className="py-12 relative border-t border-slate-900 bg-slate-950/20">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="p-5 rounded-2xl bg-slate-900/30 border border-slate-900 flex items-center justify-between flex-wrap gap-4 text-xs font-bold text-slate-400">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
@@ -354,7 +354,7 @@ export default function SupportPage() {
 
       {/* 6. Interactive Contact/Feedback Form */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-2xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">

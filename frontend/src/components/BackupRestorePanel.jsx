@@ -17,6 +17,22 @@ const BackupRestorePanel = ({ isOpen, onClose, items = [], onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [platformBackups, setPlatformBackups] = useState([]);
+
+  // Fetch platform backups when import tab is active
+  useEffect(() => {
+    if (activeTab === 'import') {
+      const fetchPlatformBackups = async () => {
+        try {
+          const res = await api.get('/v1/backups');
+          setPlatformBackups(res.data);
+        } catch (error) {
+          console.error("Failed to fetch platform backups", error);
+        }
+      };
+      fetchPlatformBackups();
+    }
+  }, [activeTab]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [backupName, setBackupName] = useState('');
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -110,7 +126,7 @@ const BackupRestorePanel = ({ isOpen, onClose, items = [], onRefresh }) => {
     }
   };
 
-  // Export selected items as ZIP
+  // Export selected items as local Backup
   const handleExportSelected = async () => {
     if (selectedItems.length === 0) {
       showMessage('warning', 'Select items to export');
@@ -119,47 +135,26 @@ const BackupRestorePanel = ({ isOpen, onClose, items = [], onRefresh }) => {
 
     setLoading(true);
     try {
-      const filesToZip = selectedItems.map(item => ({
-        name: item.name,
-        data: item.content || new TextEncoder().encode(item.name)
-      }));
-
-      const result = await createZipArchive(filesToZip, {
-        filename: `export_${Date.now()}.zip`,
-        onProgress: setProgress
-      });
-
-      if (result.success) {
-        const blob = new Blob([result.data], { type: 'application/zip' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = result.filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        showMessage('success', `Exported ${selectedItems.length} items`);
-      }
+      const itemIds = selectedItems.map(item => item.id);
+      const res = await api.post('/v1/backup', { item_ids: itemIds });
+      showMessage('success', res.data.message || `Backed up ${itemIds.length} items to local Backup folder`);
     } catch (error) {
-      showMessage('error', `Export failed: ${error.message}`);
+      showMessage('error', `Backup failed: ${error.message}`);
     }
     setLoading(false);
   };
 
-  // Full workspace export
+  // Full workspace export to local Backup
   const handleFullExport = async () => {
     setLoading(true);
     try {
-      const result = await exportWorkspace();
-      const blob = new Blob([result.data], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      showMessage('success', `Full backup exported (${formatBytes(result.size)})`);
+      // Get all item IDs (since it's a full export)
+      const res = await api.get('/documents?view=all');
+      const itemIds = res.data.map(item => item.id);
+      const backupRes = await api.post('/v1/backup', { item_ids: itemIds });
+      showMessage('success', backupRes.data.message || 'Full backup completed successfully');
     } catch (error) {
-      showMessage('error', `Export failed: ${error.message}`);
+      showMessage('error', `Backup failed: ${error.message}`);
     }
     setLoading(false);
   };
@@ -480,46 +475,51 @@ const BackupRestorePanel = ({ isOpen, onClose, items = [], onRefresh }) => {
           {activeTab === 'import' && (
             <div className="space-y-6">
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Import Backup</h3>
+                <h3 className="font-semibold mb-3">Restore from Platform Backup</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Import from a backup file. Supported formats: .dmx, .dmxp, .zip
+                  Select a backup created on the platform to restore your workspace.
                 </p>
-                
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <p className="text-sm text-gray-500">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-gray-400">.dmx, .dmxp, or .zip files</p>
+                {platformBackups.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No platform backups available</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {platformBackups.map(backup => (
+                      <div 
+                        key={backup.id} 
+                        className="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{backup.name}</h4>
+                            <p className="text-sm text-gray-500">
+                              {new Date(backup.created_at * 1000).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            setLoading(true);
+                            try {
+                              const res = await api.post(`/v1/backups/${backup.id}/restore`);
+                              showMessage('success', res.data.message || 'Workspace restored successfully');
+                            } catch (e) {
+                              showMessage('error', 'Restore failed');
+                            }
+                            setLoading(false);
+                          }}
+                          className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+                        >
+                          Restore
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <input
-                    type="file"
-                    accept=".dmx,.dmxp,.zip"
-                    onChange={handleImport}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-800 mb-3">Supported Formats</h3>
-                <ul className="space-y-2 text-sm text-blue-700">
-                  <li className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-100 px-2 py-0.5 rounded">.dmx</span>
-                    <span>DocMatrix workspace backup</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-100 px-2 py-0.5 rounded">.dmxp</span>
-                    <span>Portable workspace (USB-ready)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="font-mono bg-blue-100 px-2 py-0.5 rounded">.zip</span>
-                    <span>Standard ZIP archive</span>
-                  </li>
-                </ul>
+                )}
               </div>
             </div>
           )}

@@ -78,7 +78,7 @@ export default function AboutPage() {
         <div className="absolute top-0 left-[10%] w-[35%] h-[35%] rounded-full bg-blue-900/10 blur-[100px] pointer-events-none" />
         <div className="absolute bottom-10 right-[15%] w-[45%] h-[45%] rounded-full bg-cyan-900/10 blur-[120px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center relative z-10 space-y-6">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-cyan-950/40 border border-cyan-400/30 text-cyan-400">
             About the Project
           </span>
@@ -95,7 +95,7 @@ export default function AboutPage() {
 
       {/* 2. Platform Philosophy & Pillars */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/50">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">System Core Pillars</h2>
             <p className="text-slate-400 text-sm md:text-base max-w-lg mx-auto">
@@ -122,7 +122,7 @@ export default function AboutPage() {
 
       {/* 3. Interactive Architecture SVG Flowchart */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
               Technical Architecture
@@ -226,7 +226,7 @@ export default function AboutPage() {
 
       {/* 4. Interactive Document Lifecycle Flow */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/30">
-        <div className="max-w-4xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">The Document Lifecycle</h2>
             <p className="text-slate-400 text-sm md:text-base">
@@ -258,7 +258,7 @@ export default function AboutPage() {
 
       {/* 5. Interactive Technology Stack Matrix */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-950/50 border border-blue-500/25 text-blue-400">
               Technology Stack
@@ -320,7 +320,7 @@ export default function AboutPage() {
 
       {/* 6. Creative CTA */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/30 p-8 md:p-12 text-center relative overflow-hidden space-y-6 max-w-4xl mx-auto shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 via-transparent to-blue-500/5 pointer-events-none" />
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight relative z-10">

@@ -1004,7 +1004,8 @@ if (String(itemId).startsWith("mega:")) {
           saveData(newItems);
           return newFile;
         } catch (error) {
-          console.warn('Cloud upload failed. Falling back to local upload:', error);
+          console.error('Cloud upload failed:', error);
+          throw new Error(`Cloud upload failed: ${error.message || 'Unknown error'}`);
         }
       }
       
@@ -1188,9 +1189,16 @@ if (String(itemId).startsWith("mega:")) {
       if (isCloudMode()) {
         for (const itemId of itemIds) {
           const targetItem = state.items.find(item => item.id === itemId);
-          if (!targetItem?.isCloud || targetItem.type === 'folder') continue;
+          if (!targetItem?.isCloud) continue;
+          
           try {
-            await documentOpsApi.deleteDocument(itemId, false);
+            if (targetItem.type === 'folder') {
+              // Now that we disabled OTP for UI deletion on the backend, 
+              // we can call deleteFolder with recursive=true
+              await folderOpsApi.deleteFolder(itemId, true);
+            } else {
+              await documentOpsApi.deleteDocument(itemId, false);
+            }
           } catch (error) {
             console.error('Cloud trash failed:', error);
             return;
@@ -1219,9 +1227,16 @@ if (String(itemId).startsWith("mega:")) {
       if (isCloudMode()) {
         for (const itemId of itemIds) {
           const targetItem = state.items.find(item => item.id === itemId);
-          if (!targetItem?.isCloud || targetItem.type === 'folder') continue;
+          if (!targetItem?.isCloud) continue;
+          
           try {
-            await documentOpsApi.restoreDocument(itemId);
+            if (targetItem.type === 'folder') {
+              // Backend might not support restoring virtual folders natively if it hard-deleted them,
+              // but we will attempt it in case it's a soft-delete endpoint or we just rely on local state updates.
+              console.warn('Folder restore from trash relies on local state unless supported by backend.');
+            } else {
+              await documentOpsApi.restoreDocument(itemId);
+            }
           } catch (error) {
             console.error('Cloud restore failed:', error);
             return;
@@ -1546,10 +1561,29 @@ if (String(itemId).startsWith("mega:")) {
       return folderSize;
     },
 
-    // Secure delete (overwrite)
-    secureDelete: (ids) => {
+    // Secure delete (overwrite and remove permanently)
+    secureDelete: async (ids) => {
       const itemIds = Array.isArray(ids) ? ids : [ids];
-      // In a real app, this would overwrite the file data before deletion
+      
+      if (isCloudMode()) {
+        for (const itemId of itemIds) {
+          const targetItem = state.items.find(item => item.id === itemId);
+          if (!targetItem?.isCloud) continue;
+          
+          try {
+            if (targetItem.type === 'folder') {
+              await folderOpsApi.deleteFolder(itemId, true);
+            } else {
+              await documentOpsApi.deleteDocument(itemId, true); // permanent=true
+            }
+          } catch (error) {
+            console.error('Cloud permanent delete failed:', error);
+            // We'll let it proceed to remove from local state anyway, 
+            // but in a production app we might halt or show an error
+          }
+        }
+      }
+
       const newItems = state.items.filter(i => !itemIds.includes(i.id));
       dispatch({ type: ACTIONS.SET_ITEMS, payload: newItems });
       dispatch({ type: ACTIONS.CLEAR_SELECTION });

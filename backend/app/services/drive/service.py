@@ -4,6 +4,7 @@ Multi-Drive Google Drive integration management
 Supports connecting multiple Google Drive accounts with adjustable storage limits
 """
 from datetime import datetime, timedelta
+from dateutil import parser as date_parser
 from typing import Optional, Tuple, List
 import logging
 import secrets
@@ -63,7 +64,7 @@ class DriveService:
             if not issued_at:
                 return None
 
-            issued_dt = datetime.fromisoformat(issued_at)
+            issued_dt = date_parser.parse(issued_at)
             # State token valid for 30 minutes
             if datetime.utcnow() - issued_dt > timedelta(minutes=30):
                 return None
@@ -791,7 +792,10 @@ class DriveService:
         
         if token_expires:
             if isinstance(token_expires, str):
-                expires_at = datetime.fromisoformat(token_expires.replace("Z", "+00:00"))
+                try:
+                    expires_at = date_parser.parse(token_expires)
+                except Exception:
+                    expires_at = datetime.utcnow()
             else:
                 expires_at = token_expires
             

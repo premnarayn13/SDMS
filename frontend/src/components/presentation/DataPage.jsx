@@ -61,7 +61,7 @@ export default function DataPage() {
       <section className="relative min-h-[75vh] flex items-center justify-center pt-16 pb-24 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center relative z-10 space-y-6">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-cyan-950/40 border border-cyan-400/30 text-cyan-400">
             Platform Specifications
           </span>
@@ -76,7 +76,7 @@ export default function DataPage() {
 
       {/* 2. Format Support Matrix */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Supported Document Matrix</h2>
@@ -164,7 +164,7 @@ export default function DataPage() {
 
       {/* 3. Interactive Performance SVG Charts */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
@@ -261,7 +261,7 @@ export default function DataPage() {
 
       {/* 4. Virtual Storage mounting flow */}
       <section className="py-24 relative border-t border-slate-900 bg-slate-950/30">
-        <div className="max-w-4xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">OAuth Mounting Handshake</h2>
             <p className="text-slate-400 text-sm md:text-base">
@@ -295,7 +295,7 @@ export default function DataPage() {
 
       {/* 5. Security compliance panel */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="p-8 md:p-12 rounded-3xl border border-cyan-500/20 bg-slate-900/30 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative">
             <div className="space-y-4 max-w-xl">
               <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider font-mono">

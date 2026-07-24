@@ -29,6 +29,7 @@ import AboutPage from './components/presentation/AboutPage';
 import DataPage from './components/presentation/DataPage';
 import DocsPage from './components/presentation/DocsPage';
 import SupportPage from './components/presentation/SupportPage';
+import SharedFileView from './components/presentation/SharedFileView';
 
 // Legacy App Content (the main document management interface)
 // Note: App component already includes AppProvider wrapper
@@ -139,6 +140,7 @@ export default function AppWithAuth() {
         <Route path="/data" element={<DataPage />} />
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/share/:token" element={<SharedFileView />} />
         
         {/* Main App */}
         <Route path="/*" element={<LegacyApp />} />
@@ -184,6 +186,7 @@ export default function AppWithAuth() {
       <Route path="/data" element={<DataPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/support" element={<SupportPage />} />
+      <Route path="/share/:token" element={<SharedFileView />} />
 
       <Route path="/drive-setup" element={
         <ProtectedRoute>

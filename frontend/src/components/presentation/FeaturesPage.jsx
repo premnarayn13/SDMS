@@ -81,7 +81,7 @@ export default function FeaturesPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full border border-cyan-500/10 blur-xl pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full border border-blue-500/10 blur-2xl pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center relative z-10">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -195,7 +195,7 @@ export default function FeaturesPage() {
 
       {/* 2. Interactive Storage Connector Sandbox */}
       <section id="interactive-demo" className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
               Interactive sandbox
@@ -322,7 +322,7 @@ export default function FeaturesPage() {
 
       {/* 3. Document Power Tools Showcase (Interactive Tab System) */}
       <section className="py-24 relative bg-slate-950/50 border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
             {/* Left Content info */}
@@ -599,7 +599,7 @@ export default function FeaturesPage() {
 
       {/* 4. Interactive "Docky AI" Chat Mockup */}
       <section className="py-24 relative border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
               Meet Docky Assistant
@@ -698,7 +698,7 @@ export default function FeaturesPage() {
 
       {/* 5. Statistics & Counters (incrementing on scroll) */}
       <section className="py-20 relative bg-slate-950 border-y border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
             
             <div className="space-y-2 p-6 rounded-2xl bg-slate-900/30 border border-slate-900">
@@ -740,7 +740,7 @@ export default function FeaturesPage() {
 
       {/* 6. System Activity Feed */}
       <section className="py-24 relative">
-        <div className="max-w-4xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-16">
             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950/50 border border-cyan-500/25 text-cyan-400">
@@ -794,7 +794,7 @@ export default function FeaturesPage() {
 
       {/* 7. Enterprise Security Callout */}
       <section className="py-24 relative bg-slate-950/40 border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-cyan-500/20 bg-slate-900/30 p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 pointer-events-none" />
             <div className="space-y-4 max-w-xl relative z-10">

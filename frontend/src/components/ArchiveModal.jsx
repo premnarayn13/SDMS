@@ -44,7 +44,7 @@ export default function ArchiveModal({ isOpen, onClose, items, onArchive, mode =
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={mode === 'create' ? 'Create Archive' : 'Extract Archive'}
+      title={mode === 'create' ? 'Compress to ZIP' : 'Extract ZIP'}
       icon={mode === 'create' ? 'archive' : 'folder'}
     >
       {mode === 'create' ? (
@@ -52,7 +52,7 @@ export default function ArchiveModal({ isOpen, onClose, items, onArchive, mode =
           {/* Archive Name */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-navy-700 mb-1.5">
-              Archive Name
+              ZIP File Name
             </label>
             <input
               type="text"
@@ -66,7 +66,7 @@ export default function ArchiveModal({ isOpen, onClose, items, onArchive, mode =
           {/* Files to Archive */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-navy-700 mb-1.5">
-              Files to archive ({items?.length || 0})
+              Files to compress ({items?.length || 0})
             </label>
             <div className="max-h-48 overflow-y-auto bg-navy-50 rounded-lg p-3 border border-navy-100">
               {items?.map(item => (
@@ -99,7 +99,7 @@ export default function ArchiveModal({ isOpen, onClose, items, onArchive, mode =
             </p>
             <label className="flex items-center gap-2 text-sm text-navy-700">
               <input type="checkbox" className="rounded border-navy-300 text-navy-900 focus:ring-navy-500" defaultChecked />
-              Create folder with archive name
+              Create folder with ZIP name
             </label>
           </div>
         </>
@@ -118,7 +118,7 @@ export default function ArchiveModal({ isOpen, onClose, items, onArchive, mode =
           className="btn-primary flex-1 flex items-center justify-center gap-2"
         >
           <Icon name={mode === 'create' ? 'archive' : 'folder'} size={14} />
-          {mode === 'create' ? 'Create Archive' : 'Extract'}
+          {mode === 'create' ? 'Compress' : 'Extract'}
         </button>
       </div>
     </Modal>

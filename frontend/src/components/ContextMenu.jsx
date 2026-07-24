@@ -187,10 +187,8 @@ export default function ContextMenu({
               {isFolder && (
                 <MenuItem icon="folder" label="Folder Appearance" onClick={onFolderColor} />
               )}
-              {!isCompressed && <MenuItem icon="archive" label="Create Archive (ZIP)" onClick={onArchive} />}
-              {(isArchive || isCompressed) && (
-                <MenuItem icon="folderOpen" label="Extract Archive" onClick={onExtract} />
-              )}
+              {!isCompressed && <MenuItem icon="archive" label="Compress (ZIP)" onClick={onArchive} />}
+              {isCompressed && <MenuItem icon="folder" label="Extract ZIP" onClick={onExtract} />}
               <MenuItem icon="info" label="Properties" onClick={onProperties} />
               <Divider />
               <MenuItem icon="trash" label="Move to Trash" shortcut="Del" onClick={onMoveToTrash} danger />

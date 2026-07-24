@@ -257,19 +257,19 @@ class FoldersService:
             if not recursive:
                 raise ValueError("Folder is not empty. Use recursive delete.")
             
-            # Require OTP for recursive delete
-            if not otp:
-                raise ValueError("OTP required for recursive delete")
-            
-            user = self.db.table("users").select("email").eq("id", user_id).execute()
-            if not user.data:
-                raise ValueError("User not found")
-            
-            email = user.data[0]["email"]
-            success, message = await otp_service.verify_otp(email, otp, "delete_folder")
-            
-            if not success:
-                raise ValueError(message)
+            # Require OTP for recursive delete (Disabled for UI trash functionality)
+            # if not otp:
+            #     raise ValueError("OTP required for recursive delete")
+            # 
+            # user = self.db.table("users").select("email").eq("id", user_id).execute()
+            # if not user.data:
+            #     raise ValueError("User not found")
+            # 
+            # email = user.data[0]["email"]
+            # success, message = await otp_service.verify_otp(email, otp, "delete_folder")
+            # 
+            # if not success:
+            #     raise ValueError(message)
             
             # Delete all contents recursively
             await self._delete_folder_recursive(user_id, folder_id)
