@@ -81,7 +81,7 @@ export default function PublicLayout({ children }) {
   return (
     <div 
       className="min-h-screen text-slate-100 flex flex-col relative overflow-hidden bg-slate-950 selection:bg-cyan-500/30 selection:text-cyan-200"
-      style={{ fontFamily: 'Space Grotesk, Manrope, Segoe UI, sans-serif' }}
+      style={{ fontFamily: 'Inter, Segoe UI, Roboto, sans-serif', fontSize: '16px' }}
     >
       {/* Cinematic Grid and Mesh Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -139,7 +139,7 @@ export default function PublicLayout({ children }) {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative px-4 py-2 rounded-full text-[15px] font-medium tracking-wide transition-all duration-300 ${
+                  className={`relative px-3 py-1.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 ${
                     active ? 'text-white' : 'text-slate-400 hover:text-slate-100'
                   }`}
                 >

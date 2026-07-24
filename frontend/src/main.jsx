@@ -5,12 +5,15 @@ import AppWithAuth from './AppWithAuth.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import './index.css'
 
-// Apply saved UI scale on boot so the layout is correct from the first render
+// Clear any previously saved zoom/scale that was incorrectly applied to the whole page
 try {
+  document.documentElement.style.zoom = '';
+  document.documentElement.style.removeProperty('zoom');
+  // Also clear any bad scale saved in localStorage - reset to 100
   const saved = JSON.parse(localStorage.getItem('docmatrix_ui_customization') || '{}');
-  const scale = (saved.scale || 100) / 100;
-  if (scale !== 1) {
-    document.documentElement.style.zoom = String(scale);
+  if (saved.scale && saved.scale !== 100) {
+    saved.scale = 100;
+    localStorage.setItem('docmatrix_ui_customization', JSON.stringify(saved));
   }
 } catch (_) { /* ignore */ }
 

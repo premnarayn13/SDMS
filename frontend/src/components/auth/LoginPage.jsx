@@ -84,36 +84,36 @@ export default function LoginPage() {
   return (
       <div
       className="h-screen overflow-hidden flex bg-gradient-to-br from-blue-950 via-blue-800 to-cyan-700"
-      style={{ fontFamily: 'Manrope, Space Grotesk, Segoe UI, sans-serif' }}
+      style={{ fontFamily: 'Inter, Segoe UI, Roboto, sans-serif', fontSize: '16px' }}
     >
       <header className="absolute top-0 left-0 right-0 z-20 border-b border-cyan-100/20 bg-blue-950/55 backdrop-blur-xl">
-        <div className="w-full h-20 px-5 lg:px-9 flex items-center gap-5">
-          <div className="flex items-center">
+        <div className="w-full h-16 px-4 lg:px-6 flex items-center gap-3">
+          <div className="flex items-center flex-shrink-0">
           <img
             src={logo}
             alt="DocMatrix"
-            className="w-32 h-auto object-contain"
+            className="w-28 h-auto object-contain"
           />
         </div>
 
-          <div className="flex-1 flex items-center gap-2">
-            <nav className="flex-1 flex items-center justify-center gap-1 text-[15px] font-semibold">
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            <nav className="flex-1 hidden md:flex items-center justify-center gap-0.5 text-[13px] font-semibold">
+              <Link className="px-3 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/login">Home</Link>
+              <Link className="px-3 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/features">Features</Link>
+              <Link className="px-3 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/about">About</Link>
+              <Link className="px-3 py-2 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/data">Data</Link>
+              <Link className="px-3 py-2 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/docs">Docs</Link>
+              <Link className="px-3 py-2 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors whitespace-nowrap" to="/support">Support</Link>
               <button
                 type="button"
                 onClick={goToAdminLogin}
-                className="min-w-[102px] text-center px-4 py-2 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors"
+                className="px-3 py-2 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors whitespace-nowrap"
               >
                 Admin
               </button>
             </nav>
 
-            <div className="hidden xl:flex items-center relative w-64">
+            <div className="hidden xl:flex items-center relative w-48">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-200/75" />
               <input
                 type="text"
@@ -124,7 +124,7 @@ export default function LoginPage() {
 
             <Link
               to="/register"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-sm font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-900/35"
+              className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-sm font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-900/35"
             >
               Sign up
             </Link>

@@ -168,14 +168,10 @@ export default function SettingsPage() {
   useEffect(() => {
     const root = document.documentElement;
     const scaleValue = (uiCustomization.scale || 100) / 100;
-    // Use zoom on the root element so layout reflows correctly (unlike transform:scale which clips layout)
     root.style.setProperty('--dm-ui-scale', String(scaleValue));
-    // Apply zoom directly so the page renders at the right scale
-    if (scaleValue !== 1) {
-      root.style.zoom = String(scaleValue);
-    } else {
-      root.style.zoom = '';
-    }
+    // Clear any zoom that was previously applied
+    root.style.zoom = '';
+    root.style.removeProperty('zoom');
     root.style.setProperty('--dm-accent-color', uiCustomization.accentColor || '#102a43');
     root.style.setProperty('--dm-sidebar-font-size', `${uiCustomization.sidebarTextSize || 14}px`);
     root.style.setProperty('--dm-sidebar-font-weight', String(uiCustomization.sidebarTextWeight || 600));
