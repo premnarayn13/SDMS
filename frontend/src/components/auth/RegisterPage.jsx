@@ -108,45 +108,45 @@ export default function RegisterPage() {
   }
   
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-950 via-blue-800 to-cyan-700">
-      <header className="absolute top-0 left-0 right-0 z-20 border-b border-cyan-100/20 bg-blue-950/55 backdrop-blur-xl">
-        <div className="w-full px-5 lg:px-9 py-5 flex items-center gap-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-900/40">
-              <FileText className="w-5 h-5 text-white" />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-950 via-blue-800 to-cyan-700 font-sans">
+      <header className="fixed top-0 left-0 right-0 z-20 border-b border-cyan-100/20 bg-blue-950/75 backdrop-blur-xl h-16 flex items-center">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-900/40">
+              <FileText className="w-4 h-4 text-white" />
             </div>
-            <span className="text-slate-100 text-2xl lg:text-3xl font-extrabold tracking-tight">DocMatrix</span>
+            <span className="text-slate-100 text-xl font-extrabold tracking-tight">DocMatrix</span>
           </div>
 
-          <div className="flex-1 flex items-center gap-2">
-            <nav className="flex-1 flex items-center justify-center gap-1 text-[15px] font-semibold">
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
-              <Link className="min-w-[102px] text-center px-4 py-2 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
+          <div className="flex items-center gap-2 min-w-0">
+            <nav className="hidden md:flex items-center gap-1 text-sm font-semibold">
+              <Link className="px-3 py-1.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/login">Home</Link>
+              <Link className="px-3 py-1.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/features">Features</Link>
+              <Link className="px-3 py-1.5 rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/about">About</Link>
+              <Link className="px-3 py-1.5 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/data">Data</Link>
+              <Link className="px-3 py-1.5 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/docs">Docs</Link>
+              <Link className="px-3 py-1.5 hidden lg:block rounded-lg text-cyan-100/90 hover:bg-cyan-100/10 hover:text-white transition-colors" to="/support">Support</Link>
               <button
                 type="button"
                 onClick={goToAdminLogin}
-                className="min-w-[102px] text-center px-4 py-2 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-cyan-400/20 text-cyan-100 hover:bg-cyan-300/25 hover:text-white transition-colors ml-1"
               >
                 Admin
               </button>
             </nav>
 
-            <div className="hidden xl:flex items-center relative w-64">
+            <div className="hidden xl:flex items-center relative w-48 ml-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-200/75" />
               <input
                 type="text"
                 placeholder="Search files"
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-blue-900/45 border border-cyan-100/25 text-cyan-50 placeholder-cyan-100/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/70 text-sm"
+                className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-blue-900/45 border border-cyan-100/25 text-cyan-50 placeholder-cyan-100/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/70 text-xs"
               />
             </div>
 
             <Link
               to="/login"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-sm font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-900/35"
+              className="flex-shrink-0 ml-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white text-xs font-semibold hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 transition-all shadow-md shadow-cyan-900/35"
             >
               Sign in
             </Link>
@@ -154,13 +154,11 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <div className="flex w-full max-w-7xl mx-auto h-full pt-16">
-      {/* Left Panel - Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-10 lg:px-8">
-        <div className="w-full max-w-md relative">
+      <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-4 sm:px-6">
+        <div className="w-full max-w-sm sm:max-w-md relative">
           
           {/* Card */}
-          <div className="bg-blue-900/86 backdrop-blur-2xl rounded-2xl p-6 lg:p-7 border border-cyan-200/30 shadow-[0_26px_76px_rgba(4,18,50,0.58)]">
+          <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-6 sm:p-7 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
             <div className="text-center mb-4">
               <h2 className="text-2xl font-bold text-white">Create account</h2>
               <p className="text-slate-300/85 mt-1.5 text-sm">Start managing your documents securely</p>
