@@ -86,83 +86,83 @@ export default function Header({
       </div>
 
       {/* Actions */}
-  <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1.5 flex-shrink-0 overflow-x-auto py-1 max-w-full">
         {/* Power Tools - Primary action */}
         <button
           onClick={onPDFToolsClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all duration-200"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all duration-200 whitespace-nowrap"
           title="Document Power Tools"
         >
-          <Icon name="zap" size={14} />
-          <span>Power Tools</span>
+          <Icon name="zap" size={13} />
+          <span>Tools</span>
         </button>
         
         {/* Storage Manager - Navigate to page */}
         <button
           onClick={handleStorageClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap"
           title="Storage Analytics & Management"
         >
-          <Icon name="database" size={14} />
+          <Icon name="database" size={13} />
           <span>Storage</span>
         </button>
 
         {/* Convert - Export/Convert access */}
         <button
           onClick={onConvertClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-all duration-200 whitespace-nowrap"
           title="Export & Convert"
         >
-          <Icon name="convert" size={14} />
+          <Icon name="convert" size={13} />
           <span>Convert</span>
         </button>
 
         <button
           onClick={onDownloadAsideClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all duration-200"
-          title="Download selected file beside convert actions"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all duration-200 whitespace-nowrap"
+          title="Download selected file"
         >
-          <Icon name="download" size={14} />
-          <span>DOWNLOAD</span>
+          <Icon name="download" size={13} />
+          <span>Download</span>
         </button>
 
         <button
           onClick={onDeleteClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 whitespace-nowrap"
           title="Delete selected"
         >
-          <Icon name="trash" size={14} />
+          <Icon name="trash" size={13} />
           <span>Delete</span>
         </button>
         
         {/* Backup & Restore - Navigate to storage page backup tab */}
         <button
           onClick={handleBackupClick}
-          className="flex items-center gap-1.5 text-xs py-2 px-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all duration-200"
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all duration-200 whitespace-nowrap"
           title="Backup & Restore"
         >
-          <Icon name="save" size={14} />
+          <Icon name="save" size={13} />
           <span>Backup</span>
         </button>
         
         {/* Divider */}
-        <div className="w-px h-6 bg-slate-200 mx-1" />
+        <div className="w-px h-5 bg-slate-200 mx-0.5" />
         
         {/* Primary Actions */}
         <button
           onClick={onUploadClick}
-          className="btn-primary flex items-center gap-1.5 text-xs py-2 px-3"
+          className="btn-primary flex items-center gap-1 text-xs py-1.5 px-2.5 whitespace-nowrap"
         >
-          <Icon name="upload" size={14} />
+          <Icon name="upload" size={13} />
           <span>Upload</span>
         </button>
         
         <button
           onClick={onNewFolderClick}
-          className="btn-secondary flex items-center gap-1.5 text-xs py-2 px-3"
+          className="btn-secondary flex items-center gap-1 text-xs py-1.5 px-2.5 whitespace-nowrap"
         >
-          <Icon name="folderPlus" size={14} />
-          <span>New Folder</span>
+          <Icon name="folderPlus" size={13} />
+          <span>Folder</span>
         </button>
         
         {/* Icon Buttons */}

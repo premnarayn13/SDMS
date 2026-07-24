@@ -902,7 +902,7 @@ export default function ActivityDashboard({ items = [], history = [], isOpen, on
   if (!isOpen) return null;
 
   const topControlBar = (
-    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-2.5 shadow-soft lg:flex-nowrap">
+    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-2.5 shadow-soft overflow-x-auto">
       <select
         className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm"
         value={filters.dateRange}
@@ -1433,8 +1433,8 @@ export default function ActivityDashboard({ items = [], history = [], isOpen, on
           <div className="mb-3 rounded-2xl border border-white/70 bg-white/85 p-3 shadow-soft">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-              <h2 className="text-2xl font-black tracking-tight text-slate-900 lg:text-3xl">DocMatrix User Intelligence Command Center</h2>
-              <p className="text-sm text-slate-600 lg:text-base">Summary hub with modular drill-down analytics. Heavy panels load only when opened.</p>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 lg:text-2xl">DocMatrix User Intelligence Command Center</h2>
+              <p className="text-xs text-slate-600 sm:text-sm">Summary hub with modular drill-down analytics. Heavy panels load only when opened.</p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
               <div className="hidden rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800 xl:block">
