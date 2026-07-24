@@ -1473,7 +1473,7 @@ export default function ActivityDashboard({ items = [], history = [], isOpen, on
 
           {!expandedModule && (
             <div className="mt-4 flex-1 overflow-auto rounded-2xl border border-white/70 bg-white/55 p-3 shadow-soft lg:p-4 animate-slide-up">
-              <div className="grid h-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 {moduleCards.map((module) => (
                   <button
                     key={module.id}

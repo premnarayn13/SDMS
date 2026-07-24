@@ -144,11 +144,11 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
       style={{ width: `${width}px` }}
     >
       {/* Logo */}
-      <div className="h-14 flex items-center justify-center px-4 border-b border-white/10 flex-shrink-0">
+      <div className="h-16 flex items-center justify-center px-2 border-b border-white/10 flex-shrink-0">
         <img
           src={logo}
           alt="DocMatrix"
-          className="h-8 w-auto object-contain"
+          className="h-12 w-auto max-w-[92%] object-contain drop-shadow-md"
         />
       </div>
 

@@ -86,8 +86,8 @@ function AppContent({ user, onSettingsClick, onLogout }) {
   const [showBackupRestore, setShowBackupRestore] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const stored = Number(localStorage.getItem('docmatrix_sidebar_width'));
-    if (Number.isFinite(stored) && stored >= 200 && stored <= 380) return stored;
-    return 240;
+    if (Number.isFinite(stored) && stored >= 180 && stored <= 360) return stored;
+    return 200;
   });
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   
