@@ -282,6 +282,8 @@ class DocumentsService:
             doc["fileType"] = doc.get("file_type")
             doc["parentId"] = doc.get("virtual_folder_id")
             doc["trash"] = doc.get("deleted_at") is not None
+            doc["is_backed_up"] = bool(doc.get("is_backed_up", False))
+            doc["isBackedUp"] = bool(doc.get("is_backed_up", False))
         
         # Get total count
         count_result = self.db.table("file_metadata").select(
@@ -319,6 +321,8 @@ class DocumentsService:
         doc["fileType"] = doc.get("file_type")
         doc["parentId"] = doc.get("virtual_folder_id")
         doc["trash"] = doc.get("deleted_at") is not None
+        doc["is_backed_up"] = bool(doc.get("is_backed_up", False))
+        doc["isBackedUp"] = bool(doc.get("is_backed_up", False))
         
         return doc
     
@@ -547,15 +551,21 @@ class DocumentsService:
             if not success:
                 raise ValueError(message)
             
-            # Delete from Drive
-            try:
-                drive_api = await drive_service.get_drive_api(user_id, doc.get("drive_id"))
-                await drive_api.delete_file(doc["drive_file_id"])
-            except Exception as e:
-                logger.warning(f"Failed to delete from Drive: {e}")
+            # Delete from Drive if NOT backed up or if forcing permanent purge
+            if not doc.get("is_backed_up"):
+                try:
+                    drive_api = await drive_service.get_drive_api(user_id, doc.get("drive_id"))
+                    await drive_api.delete_file(doc["drive_file_id"])
+                except Exception as e:
+                    logger.warning(f"Failed to delete from Drive: {e}")
             
-            # Delete metadata
-            self.db.table("file_metadata").delete().eq("id", document_id).execute()
+            # Delete metadata if not backed up, else mark soft hidden
+            if not doc.get("is_backed_up"):
+                self.db.table("file_metadata").delete().eq("id", document_id).execute()
+            else:
+                self.db.table("file_metadata").update({
+                    "deleted_at": datetime.utcnow().isoformat()
+                }).eq("id", document_id).execute()
             
             # Update quota
             drive = self.db.table("google_drive_tokens").select("id, quota_bytes_used").eq(
@@ -573,12 +583,115 @@ class DocumentsService:
                 "filename": doc["display_name"]
             })
         else:
-            # Soft delete (move to trash)
+            # Soft delete (move to trash / hide from workspace view)
             self.db.table("file_metadata").update({
                 "deleted_at": datetime.utcnow().isoformat()
             }).eq("id", document_id).execute()
             
             self._log_activity(user_id, "file", document_id, "trashed", {})
+        
+        return True
+
+    async def toggle_backup_protection(
+        self,
+        user_id: str,
+        document_id: str,
+        is_backed_up: Optional[bool] = None
+    ) -> dict:
+        """Toggle or set backup protection status for a document"""
+        doc = await self.get_document(user_id, document_id)
+        
+        target_state = is_backed_up if is_backed_up is not None else not doc.get("is_backed_up", False)
+        
+        self.db.table("file_metadata").update({
+            "is_backed_up": target_state
+        }).eq("id", document_id).execute()
+        
+        action_name = "backed_up" if target_state else "unbacked_up"
+        self._log_activity(user_id, "file", document_id, action_name, {
+            "filename": doc["display_name"],
+            "is_backed_up": target_state
+        })
+        
+        return await self.get_document(user_id, document_id)
+
+    async def get_backed_up_documents(self, user_id: str) -> List[dict]:
+        """Fetch all documents flagged with is_backed_up = True for the user"""
+        result = self.db.table("file_metadata").select("*").eq(
+            "user_id", user_id
+        ).eq(
+            "is_backed_up", True
+        ).execute()
+        
+        documents = result.data or []
+        for doc in documents:
+            doc["type"] = "file"
+            doc["name"] = doc["display_name"]
+            doc["date"] = doc["updated_at"][:10] if doc.get("updated_at") else ""
+            doc["size"] = doc.get("size_bytes", 0)
+            doc["favorite"] = doc.get("is_favorite", False)
+            doc["fileType"] = doc.get("file_type")
+            doc["parentId"] = doc.get("virtual_folder_id")
+            doc["trash"] = doc.get("deleted_at") is not None
+            doc["is_backed_up"] = True
+            doc["isBackedUp"] = True
+            doc["is_hidden_from_workspace"] = doc.get("deleted_at") is not None
+            
+        return documents
+
+    async def restore_from_backup(self, user_id: str, document_id: str) -> dict:
+        """Restore a backed-up document to the main workspace/dashboard"""
+        doc = await self.get_document(user_id, document_id)
+        
+        self.db.table("file_metadata").update({
+            "deleted_at": None,
+            "is_backed_up": True
+        }).eq("id", document_id).execute()
+        
+        self._log_activity(user_id, "file", document_id, "restored_from_backup", {
+            "filename": doc["display_name"]
+        })
+        
+        return await self.get_document(user_id, document_id)
+
+    async def delete_permanently_from_backup(self, user_id: str, document_id: str) -> bool:
+        """Permanently delete a document from Google Drive and database from the Backup Manager"""
+        result = self.db.table("file_metadata").select("*").eq(
+            "id", document_id
+        ).eq(
+            "user_id", user_id
+        ).execute()
+        
+        if not result.data:
+            raise ValueError("Document not found in backup")
+            
+        doc = result.data[0]
+        
+        # Delete from Drive
+        try:
+            drive_api = await drive_service.get_drive_api(user_id, doc.get("drive_id"))
+            await drive_api.delete_file(doc["drive_file_id"])
+        except Exception as e:
+            logger.warning(f"Failed to delete from Drive during permanent backup purge: {e}")
+        
+        # Delete metadata from Supabase
+        self.db.table("file_metadata").delete().eq("id", document_id).execute()
+        
+        # Update quota
+        drive = self.db.table("google_drive_tokens").select("id, quota_bytes_used").eq(
+            "user_id", user_id
+        ).execute()
+        
+        if drive.data:
+            used = drive.data[0].get("quota_bytes_used", 0) or 0
+            new_used = max(0, used - (doc.get("size_bytes", 0) or 0))
+            self.db.table("google_drive_tokens").update({
+                "quota_bytes_used": new_used
+            }).eq("id", drive.data[0]["id"]).execute()
+        
+        self._log_activity(user_id, "file", document_id, "permanently_deleted_from_backup", {
+            "filename": doc["display_name"]
+        })
         
         return True
     

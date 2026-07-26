@@ -1612,19 +1612,19 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
 
   return (
     <>
-      {/* Floating Assistant Button - Clean PNG Mascot */}
+      {/* Floating Assistant Button - Professional Design */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-4 right-4 w-40 h-40 sm:w-48 sm:h-48 bg-transparent p-0 border-none outline-none focus:outline-none transition-all duration-300 flex items-center justify-center z-50 group hover:scale-105 ${
+        className={`fixed bottom-6 right-6 w-24 h-24 sm:w-28 sm:h-28 bg-white/95 hover:bg-white backdrop-blur-md rounded-full shadow-2xl border border-indigo-200/80 transition-all duration-300 flex items-center justify-center z-50 group hover:scale-105 ${
           isOpen ? 'scale-0' : 'scale-100'
         }`}
         aria-label="Open Docky Assistant"
       >
-        <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
           <img 
             src="/docky-avatar.png" 
             alt="Docky" 
-            className="w-40 h-40 sm:w-48 sm:h-48 object-contain drop-shadow-xl"
+            className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-md"
           />
         </div>
         {/* Removed background pulse to avoid blue halo */}

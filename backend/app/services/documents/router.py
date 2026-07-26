@@ -310,6 +310,65 @@ async def restore_document(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+# Google Drive Backup Protection Endpoints
+@router.post("/{document_id}/backup")
+async def toggle_backup(
+    document_id: str,
+    is_backed_up: Optional[bool] = Query(None),
+    user: dict = Depends(get_current_user)
+):
+    """Toggle or set backup protection status for a document"""
+    try:
+        doc = await documents_service.toggle_backup_protection(user["id"], document_id, is_backed_up=is_backed_up)
+        return {
+            "message": "Backup status updated successfully",
+            "document": doc
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/backups/list")
+async def get_backed_up_documents(
+    user: dict = Depends(get_current_user)
+):
+    """Get all documents marked with is_backed_up = True"""
+    try:
+        documents = await documents_service.get_backed_up_documents(user["id"])
+        return {"documents": documents}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/backups/{document_id}/restore")
+async def restore_from_backup(
+    document_id: str,
+    user: dict = Depends(get_current_user)
+):
+    """Restore a backed-up document to the workspace dashboard"""
+    try:
+        doc = await documents_service.restore_from_backup(user["id"], document_id)
+        return {
+            "message": "Document restored to workspace dashboard successfully",
+            "document": doc
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/backups/{document_id}")
+async def delete_permanently_from_backup(
+    document_id: str,
+    user: dict = Depends(get_current_user)
+):
+    """Permanently delete document from Google Drive and database from Backup Manager"""
+    try:
+        await documents_service.delete_permanently_from_backup(user["id"], document_id)
+        return {"message": "Document permanently deleted from Google Drive"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # Version endpoints
 @router.post("/{document_id}/versions", response_model=VersionResponse)
 async def upload_version(

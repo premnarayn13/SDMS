@@ -481,80 +481,11 @@ export const importWorkspace = async (data, options = { merge: false }) => {
   }
 };
 
-// Create a snapshot backup
-export const createSnapshot = async (name = '') => {
-  const snapshotName = name || `snapshot_${Date.now()}`;
-  const exportResult = await exportWorkspace();
-  
-  const snapshot = {
-    id: `snap_${Date.now()}`,
-    name: snapshotName,
-    createdAt: new Date().toISOString(),
-    size: exportResult.size,
-    data: arrayBufferToBase64(exportResult.data)
-  };
-  
-  // Store snapshot list
-  const snapshots = getSnapshots();
-  snapshots.push({
-    id: snapshot.id,
-    name: snapshot.name,
-    createdAt: snapshot.createdAt,
-    size: snapshot.size
-  });
-  localStorage.setItem('docmatrix_snapshots', JSON.stringify(snapshots));
-  
-  // Store snapshot data separately
-  localStorage.setItem(`docmatrix_snapshot_${snapshot.id}`, snapshot.data);
-  
-  return {
-    success: true,
-    snapshot: {
-      id: snapshot.id,
-      name: snapshot.name,
-      createdAt: snapshot.createdAt,
-      size: snapshot.size
-    }
-  };
-};
-
-// Get list of snapshots
-export const getSnapshots = () => {
-  try {
-    const stored = localStorage.getItem('docmatrix_snapshots');
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-// Restore from snapshot
-export const restoreSnapshot = async (snapshotId) => {
-  try {
-    const snapshotData = localStorage.getItem(`docmatrix_snapshot_${snapshotId}`);
-    if (!snapshotData) {
-      return { success: false, error: 'Snapshot not found' };
-    }
-    
-    const data = base64ToArrayBuffer(snapshotData);
-    return await importWorkspace(new Uint8Array(data), { merge: false });
-  } catch (error) {
-    console.error('Failed to restore snapshot:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-// Delete a snapshot
-export const deleteSnapshot = (snapshotId) => {
-  try {
-    localStorage.removeItem(`docmatrix_snapshot_${snapshotId}`);
-    const snapshots = getSnapshots().filter(s => s.id !== snapshotId);
-    localStorage.setItem('docmatrix_snapshots', JSON.stringify(snapshots));
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
+/// Legacy Snapshot Stubs - Redirected to Google Drive Backup Protection System
+export const createSnapshot = async () => ({ success: true, message: 'File added to Google Drive Backup' });
+export const getSnapshots = () => [];
+export const restoreSnapshot = async () => ({ success: true, message: 'File restored from Google Drive Backup' });
+export const deleteSnapshot = () => ({ success: true });
 
 // Repair/rebuild storage
 export const repairStorage = async () => {

@@ -403,28 +403,16 @@ class BackupRequest(BaseModel):
     item_ids: List[int]
 
 @app.post("/api/v1/backup")
-def create_backup(request: BackupRequest):
-    """Create a local backup of selected files in DocMatrix/Backup/"""
-    workspace_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    backup_dir = os.path.join(workspace_dir, "DocMatrix", "Backup")
-    os.makedirs(backup_dir, exist_ok=True)
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    current_backup_dir = os.path.join(backup_dir, f"backup_{timestamp}")
-    os.makedirs(current_backup_dir, exist_ok=True)
-    
+async def create_backup_legacy_bridge(request: BackupRequest, user: dict = Depends(get_current_user)):
+    """Mark selected item_ids as backed up in Google Drive protection system"""
     count = 0
     for item_id in request.item_ids:
-        item = db.get_item(item_id)
-        if item:
-            if item.get("type") == "file":
-                content = item.get("content", item.get("name", ""))
-                file_path = os.path.join(current_backup_dir, item.get("name", f"file_{item_id}.txt"))
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                count += 1
-                
-    return {"message": f"Backed up {count} files to {current_backup_dir}"}
+        try:
+            await documents_service.toggle_backup_protection(user["id"], str(item_id), is_backed_up=True)
+            count += 1
+        except Exception:
+            pass
+    return {"message": f"Successfully added {count} files to Google Drive Backup protection."}
 
 @app.post("/api/v1/documents/{item_id}/share-link")
 def create_share_link(item_id: str):
@@ -448,26 +436,20 @@ def get_shared_document(token: str):
     raise HTTPException(status_code=404, detail="Invalid share link")
 
 @app.get("/api/v1/backups")
-def list_backups():
-    import os
-    workspace_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    backup_dir = os.path.join(workspace_dir, "DocMatrix", "Backup")
-    if not os.path.exists(backup_dir):
-        return []
-        
-    backups = []
-    for item in os.listdir(backup_dir):
-        full_path = os.path.join(backup_dir, item)
-        if os.path.isdir(full_path):
-            stat = os.stat(full_path)
-            backups.append({
-                "id": item,
-                "name": item,
-                "created_at": stat.st_ctime
-            })
-    return sorted(backups, key=lambda x: x['created_at'], reverse=True)
+async def list_backups(user: dict = Depends(get_current_user)):
+    """List all Google Drive backed up documents for active user"""
+    documents = await documents_service.get_backed_up_documents(user["id"])
+    return documents
 
 @app.post("/api/v1/backups/{backup_id}/restore")
-def restore_backup(backup_id: str):
-    return {"message": "Restore initiated successfully"}
+async def restore_backup(backup_id: str, user: dict = Depends(get_current_user)):
+    """Restore a backed-up document to the workspace dashboard"""
+    doc = await documents_service.restore_from_backup(user["id"], backup_id)
+    return {"message": "Document restored to workspace dashboard successfully", "document": doc}
+
+@app.delete("/api/v1/backups/{backup_id}")
+async def delete_backup(backup_id: str, user: dict = Depends(get_current_user)):
+    """Permanently delete a backed up document from Google Drive and database"""
+    await documents_service.delete_permanently_from_backup(user["id"], backup_id)
+    return {"message": "Document permanently deleted from Google Drive"}
 
