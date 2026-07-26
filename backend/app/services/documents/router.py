@@ -125,6 +125,18 @@ async def list_documents(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/backups/list")
+async def get_backed_up_documents(
+    user: dict = Depends(get_current_user)
+):
+    """Get all documents marked with is_backed_up = True"""
+    try:
+        documents = await documents_service.get_backed_up_documents(user["id"])
+        return {"documents": documents}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{document_id}", response_model=DocumentResponse)
 async def get_document(
     document_id: str,
@@ -310,7 +322,6 @@ async def restore_document(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-# Google Drive Backup Protection Endpoints
 @router.post("/{document_id}/backup")
 async def toggle_backup(
     document_id: str,
@@ -326,18 +337,6 @@ async def toggle_backup(
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/backups/list")
-async def get_backed_up_documents(
-    user: dict = Depends(get_current_user)
-):
-    """Get all documents marked with is_backed_up = True"""
-    try:
-        documents = await documents_service.get_backed_up_documents(user["id"])
-        return {"documents": documents}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/backups/{document_id}/restore")

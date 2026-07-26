@@ -617,16 +617,25 @@ class DocumentsService:
 
     async def get_backed_up_documents(self, user_id: str) -> List[dict]:
         """Fetch all documents flagged with is_backed_up = True for the user"""
-        result = self.db.table("file_metadata").select("*").eq(
-            "user_id", user_id
-        ).eq(
-            "is_backed_up", True
-        ).execute()
+        documents = []
+        try:
+            result = self.db.table("file_metadata").select("*").eq(
+                "user_id", user_id
+            ).eq(
+                "is_backed_up", True
+            ).execute()
+            documents = result.data or []
+        except Exception:
+            # Fallback if is_backed_up column filter throws error in Supabase
+            try:
+                res = self.db.table("file_metadata").select("*").eq("user_id", user_id).execute()
+                documents = [d for d in (res.data or []) if d.get("is_backed_up") == True]
+            except Exception:
+                documents = []
         
-        documents = result.data or []
         for doc in documents:
             doc["type"] = "file"
-            doc["name"] = doc["display_name"]
+            doc["name"] = doc.get("display_name") or doc.get("name", "Document")
             doc["date"] = doc["updated_at"][:10] if doc.get("updated_at") else ""
             doc["size"] = doc.get("size_bytes", 0)
             doc["favorite"] = doc.get("is_favorite", False)
