@@ -10,6 +10,8 @@ const api = axios.create({
   },
 });
 
+import { tokenUtils, authSessionUtils } from './authApi';
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
 
@@ -19,6 +21,32 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+// Handle token refresh on 401
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        const accessToken = await authSessionUtils.refreshAccessToken();
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        tokenUtils.clearAll();
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // Documents API
 export const documentsApi = {
