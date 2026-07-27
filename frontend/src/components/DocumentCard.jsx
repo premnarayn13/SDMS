@@ -141,7 +141,7 @@ export default function DocumentCard({
 
       {/* Name */}
       <div 
-        className="text-xs font-medium text-navy-800 text-center truncate px-1"
+        className="text-[10px] leading-tight font-medium text-navy-800 text-center truncate px-1 w-full"
         title={item.name}
       >
         {item.name}

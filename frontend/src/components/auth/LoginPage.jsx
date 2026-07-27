@@ -165,7 +165,7 @@ export default function LoginPage() {
           
           {/* Right Panel - Login Form */}
           <div className="lg:col-span-6 flex items-center justify-center">
-            <div className="w-full max-w-xs sm:max-w-md relative">
+            <div className="w-full max-w-[280px] sm:max-w-sm relative">
               {/* Card */}
               <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-5 sm:p-8 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
                 <div className="text-center mb-6">
