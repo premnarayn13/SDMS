@@ -182,76 +182,75 @@ export default function Header({
           <Icon name="refresh" size={16} />
         </button>
         
-        {/* Divider */}
-        <div className="w-px h-6 bg-slate-200 mx-1" />
+      </div>
 
-        {/* User Menu */}
-        <div className="relative ml-auto">
-          <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200"
-            title="Account"
-          >
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-sm font-medium">
-              {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-            <Icon name="chevronDown" size={14} className="text-slate-400" />
-          </button>
-          
-          {showUserMenu && (
-            <>
-              <div 
-                className="fixed inset-0 z-40" 
-                onClick={() => setShowUserMenu(false)}
-              />
-              <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
-                {/* User Info */}
-                <div className="px-4 py-3 border-b border-slate-200">
-                  <p className="font-medium text-slate-900 truncate">{user?.name || 'User'}</p>
-                  <p className="text-xs text-slate-500 truncate">{user?.email || 'user@example.com'}</p>
-                </div>
-                
-                {/* Menu Items */}
-                <div className="py-1">
-                  <button
-                    onClick={() => { setShowUserMenu(false); onSettingsClick?.(); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                  >
-                    <Icon name="settings" size={16} className="text-slate-400" />
-                    <span>Settings</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => { setShowUserMenu(false); onSettingsClick?.(); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                  >
-                    <Icon name="user" size={16} className="text-slate-400" />
-                    <span>Profile</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => { setShowUserMenu(false); handleStorageClick(); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                  >
-                    <Icon name="database" size={16} className="text-slate-400" />
-                    <span>Storage</span>
-                  </button>
-                </div>
-                
-                {/* Logout */}
-                <div className="border-t border-slate-200 pt-1 mt-1">
-                  <button
-                    onClick={handleLogoutClick}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                  >
-                    <Icon name="logout" size={16} />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
+      {/* User Menu - Moved outside overflow container */}
+      <div className="relative ml-auto pl-2 border-l border-slate-200 flex-shrink-0">
+        <button
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+          title="Account"
+        >
+          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-sm font-medium">
+            {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+          <Icon name="chevronDown" size={14} className="text-slate-400" />
+        </button>
+        
+        {showUserMenu && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowUserMenu(false)}
+            />
+            <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
+              {/* User Info */}
+              <div className="px-4 py-3 border-b border-slate-200">
+                <p className="font-medium text-slate-900 truncate">{user?.name || 'User'}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email || 'user@example.com'}</p>
               </div>
-            </>
-          )}
-        </div>
+              
+              {/* Menu Items */}
+              <div className="py-1">
+                <button
+                  onClick={() => { setShowUserMenu(false); onSettingsClick?.(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                >
+                  <Icon name="settings" size={16} className="text-slate-400" />
+                  <span>Settings</span>
+                </button>
+                
+                <button
+                  onClick={() => { setShowUserMenu(false); onSettingsClick?.(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                >
+                  <Icon name="user" size={16} className="text-slate-400" />
+                  <span>Profile</span>
+                </button>
+                
+                <button
+                  onClick={() => { setShowUserMenu(false); handleStorageClick(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                >
+                  <Icon name="database" size={16} className="text-slate-400" />
+                  <span>Storage</span>
+                </button>
+              </div>
+              
+              {/* Logout */}
+              <div className="border-t border-slate-200 pt-1 mt-1">
+                <button
+                  onClick={handleLogoutClick}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                >
+                  <Icon name="logout" size={16} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
       </div>
 
       </div>

@@ -63,7 +63,7 @@ export default function DocumentCard({
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
       className={`
-        card p-3 cursor-pointer group relative
+        card aspect-square p-2 sm:p-3 cursor-pointer group relative flex flex-col items-center justify-center
         transition-all duration-200 ease-out
         hover:shadow-medium hover:-translate-y-0.5
         ${isSelected ? 'border-navy-600 bg-navy-50 shadow-medium' : 'border-navy-100'}
@@ -121,7 +121,7 @@ export default function DocumentCard({
       )}
 
       {/* Icon - Distinct look for folders vs files */}
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center py-2">
         <div 
           className={`w-14 h-14 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${
             item.type === 'folder' ? 'border-2 border-amber-300' : ''
