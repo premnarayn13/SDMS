@@ -1907,20 +1907,23 @@ export default function App({ user, onSettingsClick, onLogout }) {
             } catch(e) {}
           }
           
-          styleEl.innerHTML = `
+          let css = `
             .bg-navy-900 { background-color: ${accentColor} !important; }
             .text-navy-900 { color: ${accentColor} !important; }
             .border-navy-900 { border-color: ${accentColor} !important; }
-            
-            ${isDark ? \`
+          `;
+          
+          if (isDark) {
+            css += `
               body { background-color: #0f172a !important; color: #f8fafc !important; }
               .bg-white, .card, .modal-overlay > div { background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
               .bg-navy-50 { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
               .text-navy-400, .text-navy-500, .text-navy-600, .text-navy-700, .text-navy-800, .text-gray-500, .text-gray-600 { color: #cbd5e1 !important; }
               .border-navy-100, .border-navy-200, .border-gray-200, .border-gray-300 { border-color: #334155 !important; }
               input, textarea, select { background-color: #0f172a !important; color: #f8fafc !important; border-color: #334155 !important; }
-            \` : ''}
-          `;
+            `;
+          }
+          styleEl.innerHTML = css;
         }
       } catch (e) {
         console.error('Failed to apply UI preferences', e);
