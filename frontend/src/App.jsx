@@ -86,8 +86,8 @@ function AppContent({ user, onSettingsClick, onLogout }) {
   const [showBackupRestore, setShowBackupRestore] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const stored = Number(localStorage.getItem('docmatrix_sidebar_width'));
-    if (Number.isFinite(stored) && stored >= 160 && stored <= 320) return stored;
-    return 175;
+    if (Number.isFinite(stored) && stored >= 150 && stored <= 320) return stored;
+    return 240;
   });
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   
@@ -166,7 +166,7 @@ function AppContent({ user, onSettingsClick, onLogout }) {
     if (!isResizingSidebar) return;
 
     const handleMouseMove = (event) => {
-      const nextWidth = Math.min(420, Math.max(280, event.clientX));
+      const nextWidth = Math.min(420, Math.max(240, event.clientX));
       setSidebarWidth(nextWidth);
     };
 
