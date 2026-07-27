@@ -1871,6 +1871,67 @@ function AppContent({ user, onSettingsClick, onLogout }) {
 }
 
 export default function App({ user, onSettingsClick, onLogout }) {
+  useEffect(() => {
+    const applyUIPrefs = () => {
+      try {
+        const saved = localStorage.getItem('docmatrix_ui_customization');
+        if (saved) {
+          const uiCustomization = JSON.parse(saved);
+          const root = document.documentElement;
+          const scaleValue = (uiCustomization.scale || 100) / 100;
+          
+          root.style.zoom = String(scaleValue);
+          root.style.setProperty('--dm-ui-scale', String(scaleValue));
+          root.style.setProperty('--dm-accent-color', uiCustomization.accentColor || '#102a43');
+          root.style.setProperty('--dm-sidebar-font-size', `${uiCustomization.sidebarTextSize || 14}px`);
+          root.style.setProperty('--dm-sidebar-font-weight', String(uiCustomization.sidebarTextWeight || 600));
+          root.style.setProperty('--dm-ui-radius', `${uiCustomization.cornerRadius || 12}px`);
+          root.style.setProperty('--dm-field-max-width', uiCustomization.fieldWidth === 'tight' ? '560px' : (uiCustomization.fieldWidth === 'comfortable' ? '720px' : '100%'));
+          root.style.setProperty('--dm-content-max-width', uiCustomization.contentMode === 'centered' ? '1280px' : '100%');
+          root.style.setProperty('--dm-motion-duration', uiCustomization.reducedMotion ? '0ms' : '200ms');
+          root.dataset.dmDensity = uiCustomization.compactMode ? 'compact' : 'comfortable';
+          
+          let styleEl = document.getElementById('dm-dynamic-styles');
+          if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'dm-dynamic-styles';
+            document.head.appendChild(styleEl);
+          }
+          
+          const accentColor = uiCustomization.accentColor || '#102a43';
+          const prefsRaw = localStorage.getItem('docmatrix_preferences');
+          let isDark = false;
+          if (prefsRaw) {
+            try {
+              isDark = JSON.parse(prefsRaw).theme === 'dark';
+            } catch(e) {}
+          }
+          
+          styleEl.innerHTML = `
+            .bg-navy-900 { background-color: ${accentColor} !important; }
+            .text-navy-900 { color: ${accentColor} !important; }
+            .border-navy-900 { border-color: ${accentColor} !important; }
+            
+            ${isDark ? \`
+              body { background-color: #0f172a !important; color: #f8fafc !important; }
+              .bg-white, .card, .modal-overlay > div { background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
+              .bg-navy-50 { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
+              .text-navy-400, .text-navy-500, .text-navy-600, .text-navy-700, .text-navy-800, .text-gray-500, .text-gray-600 { color: #cbd5e1 !important; }
+              .border-navy-100, .border-navy-200, .border-gray-200, .border-gray-300 { border-color: #334155 !important; }
+              input, textarea, select { background-color: #0f172a !important; color: #f8fafc !important; border-color: #334155 !important; }
+            \` : ''}
+          `;
+        }
+      } catch (e) {
+        console.error('Failed to apply UI preferences', e);
+      }
+    };
+    
+    applyUIPrefs();
+    window.addEventListener('ui_prefs_changed', applyUIPrefs);
+    return () => window.removeEventListener('ui_prefs_changed', applyUIPrefs);
+  }, []);
+
   return (
     <AppProvider>
       <AppContent user={user} onSettingsClick={onSettingsClick} onLogout={onLogout} />

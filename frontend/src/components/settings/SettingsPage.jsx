@@ -181,6 +181,7 @@ export default function SettingsPage() {
     root.style.setProperty('--dm-motion-duration', uiCustomization.reducedMotion ? '0ms' : '200ms');
     root.dataset.dmDensity = uiCustomization.compactMode ? 'compact' : 'comfortable';
     localStorage.setItem(UI_PREFS_KEY, JSON.stringify(uiCustomization));
+    window.dispatchEvent(new Event('ui_prefs_changed'));
   }, [uiCustomization]);
 
   const loadData = async () => {
