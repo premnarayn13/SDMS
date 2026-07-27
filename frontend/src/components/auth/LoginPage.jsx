@@ -165,15 +165,15 @@ export default function LoginPage() {
           
           {/* Right Panel - Login Form */}
           <div className="lg:col-span-6 flex items-center justify-center">
-            <div className="w-full max-w-[280px] sm:max-w-sm relative">
+            <div className="w-full max-w-[300px] sm:max-w-[340px] relative">
               {/* Card */}
-              <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-6 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
+              <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-6 sm:p-7 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
                 <div className="text-center mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-cyan-50">Welcome</h2>
                   <p className="text-cyan-100/80 mt-1.5 text-xs sm:text-sm">Sign in to your account</p>
                   <div className="flex justify-center mt-5">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-200/90 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-200/90 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 sm:w-8 sm:h-8 text-slate-400 mt-0.5">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
@@ -182,14 +182,14 @@ export default function LoginPage() {
                 
                 {/* Error Alert */}
                 {error && (
-                  <div className="max-w-[280px] mx-auto mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2.5 text-red-300">
+                  <div className="w-full mx-auto mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2.5 text-red-300">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     <span className="text-xs">{error}</span>
                   </div>
                 )}
 
                 {/* Login Form */}
-                <form onSubmit={handleSubmit} className="space-y-4 max-w-[280px] mx-auto">
+                <form onSubmit={handleSubmit} className="space-y-4 w-full mx-auto">
                   <div>
                     <label className="block text-xs font-semibold text-cyan-100/95 mb-1">
                       Email or Admin ID
@@ -202,8 +202,8 @@ export default function LoginPage() {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full pl-9 pr-3 py-2 bg-blue-950/60 border border-cyan-200/30 rounded-lg text-cyan-50 placeholder-cyan-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/80 focus:border-cyan-200 transition-all text-xs sm:text-sm"
-                        placeholder="you@example.com or DOCMATRIX-OMEGA"
+                        className="w-full pl-9 pr-3 py-2.5 bg-blue-950/60 border border-cyan-200/30 rounded-lg text-cyan-50 placeholder-cyan-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/80 focus:border-cyan-200 transition-all text-sm"
+                        placeholder="you@example.com"
                       />
                     </div>
                   </div>
@@ -220,7 +220,7 @@ export default function LoginPage() {
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        className="w-full pl-9 pr-9 py-2 bg-blue-950/60 border border-cyan-200/30 rounded-lg text-cyan-50 placeholder-cyan-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/80 focus:border-cyan-200 transition-all text-xs sm:text-sm"
+                        className="w-full pl-9 pr-9 py-2.5 bg-blue-950/60 border border-cyan-200/30 rounded-lg text-cyan-50 placeholder-cyan-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/80 focus:border-cyan-200 transition-all text-sm"
                         placeholder="••••••••"
                       />
                       <button
@@ -233,8 +233,8 @@ export default function LoginPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-0.5">
-                    <label className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
                         type="checkbox"
                         className="w-3.5 h-3.5 rounded border-cyan-100/50 bg-blue-950/45 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
@@ -243,7 +243,7 @@ export default function LoginPage() {
                     </label>
                     <Link
                       to="/forgot-password"
-                      className="text-xs text-cyan-300 hover:text-cyan-200"
+                      className="text-xs text-cyan-300 hover:text-cyan-200 font-medium transition-colors"
                     >
                       Forgot password?
                     </Link>
@@ -252,7 +252,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:from-cyan-400 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-blue-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-cyan-900/35"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-cyan-400 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-blue-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-cyan-900/35"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -266,24 +266,24 @@ export default function LoginPage() {
                 </form>
                 
                 {/* Register Link */}
-                <p className="mt-5 text-center text-slate-300 text-xs sm:text-sm">
+                <p className="mt-5 text-center text-slate-300 text-xs sm:text-[13px]">
                   Don't have an account?{' '}
                   <Link
                     to="/register"
-                    className="text-cyan-300 hover:text-cyan-200 font-semibold"
+                    className="text-cyan-300 hover:text-cyan-200 font-semibold transition-colors"
                   >
                     Create account
                   </Link>
                 </p>
 
-                <p className="mt-1.5 text-center text-slate-300 text-xs">
-                  Need admin mission control?{' '}
+                <p className="mt-2 text-center text-slate-300 text-xs sm:text-[13px]">
+                  Need admin access?{' '}
                   <Link
                     to="/admin/login"
                     onClick={goToAdminLogin}
-                    className="text-blue-300 hover:text-blue-200 font-semibold"
+                    className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
                   >
-                    Use special admin login
+                    Use special login
                   </Link>
                 </p>
               </div>

@@ -152,7 +152,7 @@ body {
 
   /* Section header */
   .section-header {
-    @apply px-3 py-2 text-[13px] font-semibold uppercase tracking-wider text-navy-400;
+    @apply px-3 pt-2 pb-1 text-[13px] font-semibold uppercase tracking-wider text-navy-400;
   }
 
   /* DOCX Preview (docx-preview) */
