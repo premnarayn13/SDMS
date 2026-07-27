@@ -1908,19 +1908,24 @@ export default function App({ user, onSettingsClick, onLogout }) {
           }
           
           let css = `
-            .bg-navy-900 { background-color: ${accentColor} !important; }
-            .text-navy-900 { color: ${accentColor} !important; }
-            .border-navy-900 { border-color: ${accentColor} !important; }
+            .btn-primary { background-color: ${accentColor} !important; border-color: ${accentColor} !important; }
+            .nav-item-active { background-color: ${accentColor}15 !important; color: ${accentColor} !important; }
+            .text-accent { color: ${accentColor} !important; }
+            input[type="checkbox"]:checked { background-color: ${accentColor} !important; border-color: ${accentColor} !important; }
           `;
           
           if (isDark) {
             css += `
               body { background-color: #0f172a !important; color: #f8fafc !important; }
-              .bg-white, .card, .modal-overlay > div { background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
-              .bg-navy-50 { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
-              .text-navy-400, .text-navy-500, .text-navy-600, .text-navy-700, .text-navy-800, .text-gray-500, .text-gray-600 { color: #cbd5e1 !important; }
-              .border-navy-100, .border-navy-200, .border-gray-200, .border-gray-300 { border-color: #334155 !important; }
+              .bg-white, .card { background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
+              .bg-navy-50, .bg-slate-50, .bg-gray-50 { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
+              .text-navy-600, .text-navy-700, .text-navy-800, .text-navy-900, .text-slate-600, .text-slate-700, .text-slate-800, .text-gray-700, .text-gray-800 { color: #e2e8f0 !important; }
+              .text-navy-400, .text-navy-500, .text-slate-400, .text-slate-500, .text-gray-500, .text-gray-600 { color: #94a3b8 !important; }
+              .border-navy-100, .border-navy-200, .border-slate-200, .border-gray-200, .border-gray-300 { border-color: #334155 !important; }
               input, textarea, select { background-color: #0f172a !important; color: #f8fafc !important; border-color: #334155 !important; }
+              .hover\\:bg-navy-50:hover, .hover\\:bg-slate-50:hover, .hover\\:bg-gray-50:hover { background-color: #334155 !important; }
+              .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
+              .modal-overlay > div { background-color: #1e293b !important; border-color: #334155 !important; }
             `;
           }
           styleEl.innerHTML = css;

@@ -63,7 +63,7 @@ export default function DocumentGrid({
   if (viewMode === 'grid') {
     return (
       <>
-        <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+        <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))' }}>
           {sortedItems.map(item => (
             <div
               key={item.id}
