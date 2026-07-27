@@ -498,6 +498,46 @@ async def get_public_document(
             status_code=404,
             detail=str(e)
         )
+
+@router.get("/public/{token}/download")
+async def download_public_document(
+    token: str
+):
+    """
+    Public document download access
+    """
+    try:
+        document = await documents_service.get_public_document(token)
+        owner_id = document["user_id"]
+        document_id = document["id"]
+        
+        try:
+            stream, filename, mime_type = await documents_service.download_document_stream(
+                owner_id, document_id
+            )
+
+            return StreamingResponse(
+                stream,
+                media_type=mime_type,
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"'
+                }
+            )
+        except Exception:
+            content, filename, mime_type = await documents_service.download_document(
+                owner_id, document_id
+            )
+            return Response(
+                content=content,
+                media_type=mime_type,
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"'
+                }
+            )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
     
 

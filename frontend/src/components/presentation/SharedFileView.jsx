@@ -26,14 +26,7 @@ export default function SharedFileView() {
 
   const handleDownload = () => {
     if (!file) return;
-    const content = file.content || file.name;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(url);
+    window.location.href = `/api/v1/documents/public/${token}/download`;
   };
 
   if (loading) {
