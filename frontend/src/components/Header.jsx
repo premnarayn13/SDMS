@@ -70,7 +70,7 @@ export default function Header({
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 overflow-visible">
-      <div className="h-14 px-4 flex items-center gap-3 overflow-visible">
+      <div className="h-14 px-4 flex items-center gap-3 overflow-visible relative z-50">
       {/* Search Box */}
       <div className="flex-1 min-w-[140px] max-w-xs sm:max-w-sm relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
