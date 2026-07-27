@@ -225,24 +225,24 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
             <div className="mt-1 space-y-0.5">
               {/* Loading State */}
               {loadingDrives && (
-                  <div className="px-2 py-1 text-[10px] text-navy-400">
-                    Loading drives...
-                  </div>
-                )}
-                
-                {/* Linked Google Drives */}
-                {!loadingDrives && linkedDrives.map((drive, index) => (
-                  <div key={drive.id} className="drive-section">
-                    {/* Drive Header */}
-                    <button
-                      onClick={() => {
-                        toggleDrive(`drive-${index}`);
-                        openStorageScope('google', drive.id, drive.label || drive.display_name || `Drive ${String.fromCharCode(65 + index)}`);
-                      }}
-                      className={`flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-[10px] font-medium text-navy-200 hover:bg-white/10 transition-all ${
-                        index === 0 && currentFolder === null && currentView === 'home' ? 'bg-white/15 text-white' : ''
-                      }`}
-                    >
+                <div className="px-2 py-1 text-xs text-navy-400">
+                  Loading drives...
+                </div>
+              )}
+              
+              {/* Linked Google Drives */}
+              {!loadingDrives && linkedDrives.map((drive, index) => (
+                <div key={drive.id} className="drive-section">
+                  {/* Drive Header */}
+                  <button
+                    onClick={() => {
+                      toggleDrive(`drive-${index}`);
+                      openStorageScope('google', drive.id, drive.label || drive.display_name || `Drive ${String.fromCharCode(65 + index)}`);
+                    }}
+                    className={`flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-xs font-medium text-navy-200 hover:bg-white/10 transition-all ${
+                      index === 0 && currentFolder === null && currentView === 'home' ? 'bg-white/15 text-white' : ''
+                    }`}
+                  >
                     <Icon 
                       name={expandedDrives.includes(`drive-${index}`) ? 'chevronDown' : 'chevronRight'} 
                       size={14} 
@@ -309,18 +309,16 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
               {!loadingDrives && (
                 <div className="drive-section">
                   <button
-                      onClick={() => {
-                        toggleDrive('mega-drive');
-                        openStorageScope('mega', 'mega-root', 'MEGA Drive');
-                      }}
-                      className={`flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-[10px] font-medium transition-all ${
-                        megaSummary.connected && currentFolder === null && currentView === 'home' && currentScope?.provider === 'mega' 
-                          ? 'bg-white/15 text-white'
-                          : megaSummary.connected 
-                          ? 'text-navy-200 hover:bg-white/10'
-                          : 'text-navy-400 hover:bg-white/6'
-                      }`}
-                    >
+                    onClick={() => {
+                      toggleDrive('mega-drive');
+                      openStorageScope('mega', 'mega-account', 'MEGA');
+                    }}
+                    className={`flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-xs font-medium transition-all ${
+                      megaSummary.connected
+                        ? 'text-navy-200 hover:bg-white/10'
+                        : 'text-navy-400 hover:bg-white/6'
+                    }`}
+                  >
                     <Icon
                       name={expandedDrives.includes('mega-drive') ? 'chevronDown' : 'chevronRight'}
                       size={14}
@@ -378,22 +376,22 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
               )}
 
               {/* Add Drive Button */}
-              {!loadingDrives &&               <div className="mt-1">
+              {!loadingDrives && (
                 <button
-                  onClick={() => openStorageScope('local', 'local', 'Local Storage')}
-                  className="flex items-center gap-2 w-full px-2 py-2 rounded text-[11px] text-navy-400 hover:bg-white/10 hover:text-white transition-all"
+                  onClick={() => window.location.href = '/settings?tab=drive'}
+                  className="flex items-center gap-2 w-full px-2 py-2 rounded text-sm text-navy-400 hover:bg-white/10 hover:text-white transition-all"
                 >
-                  <Icon name="monitor" size={14} className="opacity-70" />
-                  <span>Browse Local Device</span>
+                  <Icon name="plus" size={16} className="opacity-60" />
+                  <span>Add Google Drive</span>
                 </button>
-              </div>
-              }
+              )}
               
-              <div className="mt-2 space-y-0.5">
-                {DEFAULT_DRIVE_SECTIONS.map(drive => (
+              {/* Default Sections */}
+              {DEFAULT_DRIVE_SECTIONS.map(drive => (
+                <div key={drive.id} className="drive-section">
                   <button
-                    key={drive.id}
-                    className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-[10px] font-medium text-navy-200 hover:bg-white/10 transition-all opacity-60"
+                    onClick={() => toggleDrive(drive.id)}
+                    className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded text-xs font-medium text-navy-200 hover:bg-white/10 transition-all opacity-60"
                   >
                     <Icon 
                       name={expandedDrives.includes(drive.id) ? 'chevronDown' : 'chevronRight'} 
@@ -403,8 +401,8 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
                     <Icon name={drive.icon} size={18} className="text-navy-400 flex-shrink-0" />
                     <span className="truncate">{drive.name}</span>
                   </button>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -458,14 +456,14 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
       </nav>
 
       {/* Storage Info - Combined from all drives */}
-      <div className="p-4 border-t border-white/10 mt-auto bg-navy-900/80 backdrop-blur-md sticky bottom-0">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-[10px] font-medium text-navy-300 flex items-center gap-2">
-            <Icon name="cloud" size={14} />
-            Storage
+      <div className="p-2.5 border-t border-white/10">
+        <div className="flex justify-between items-center mb-1.5">
+          <span className="text-xs font-medium text-navy-300 flex items-center gap-2">
+            <Icon name="database" size={14} />
+            Total Storage
           </span>
-          <span className="text-[10px] font-medium" style={{ color: storageColor }}>
-            {storagePercent.toFixed(1)}%
+          <span className="text-xs font-medium" style={{ color: storageColor }}>
+            {storagePercent.toFixed(0)}%
           </span>
         </div>
         

@@ -167,13 +167,13 @@ export default function LoginPage() {
           <div className="lg:col-span-6 flex items-center justify-center">
             <div className="w-full max-w-[280px] sm:max-w-sm relative">
               {/* Card */}
-              <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-5 sm:p-8 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
+              <div className="bg-blue-900/85 backdrop-blur-2xl rounded-2xl p-6 border border-cyan-200/30 shadow-[0_20px_50px_rgba(4,18,50,0.5)]">
                 <div className="text-center mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-cyan-50">Welcome</h2>
                   <p className="text-cyan-100/80 mt-1.5 text-xs sm:text-sm">Sign in to your account</p>
                   <div className="flex justify-center mt-5">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-200/90 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 sm:w-8 sm:h-8 text-slate-400 mt-0.5">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
