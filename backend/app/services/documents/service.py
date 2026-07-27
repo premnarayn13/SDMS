@@ -603,9 +603,13 @@ class DocumentsService:
         
         target_state = is_backed_up if is_backed_up is not None else not doc.get("is_backed_up", False)
         
-        self.db.table("file_metadata").update({
-            "is_backed_up": target_state
-        }).eq("id", document_id).execute()
+        try:
+            self.db.table("file_metadata").update({
+                "is_backed_up": target_state
+            }).eq("id", document_id).execute()
+        except Exception as e:
+            print(f"Failed to update is_backed_up column in Supabase (Column might be missing): {e}")
+            raise ValueError("Failed to update backup status. Ensure the is_backed_up column exists in Supabase.")
         
         action_name = "backed_up" if target_state else "unbacked_up"
         self._log_activity(user_id, "file", document_id, action_name, {
