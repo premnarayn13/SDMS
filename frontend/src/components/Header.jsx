@@ -253,8 +253,6 @@ export default function Header({
       </div>
       </div>
 
-      </div>
-
       {toolbarProps && (
         <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2 overflow-visible">
           <div className="relative w-full overflow-visible">
