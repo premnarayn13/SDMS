@@ -161,6 +161,7 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
             <button
               key={item.view}
               onClick={() => handleNavClick(item.view)}
+              style={{ display: 'flex' }}
               className={`nav-item w-full ${
                 currentView === item.view && currentFolder === null ? 'nav-item-active' : ''
               }`}
