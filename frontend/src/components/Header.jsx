@@ -185,10 +185,10 @@ export default function Header({
       </div>
 
       {/* User Menu - Moved outside overflow container */}
-      <div className="relative ml-auto pl-2 border-l border-slate-200 flex-shrink-0">
+      <div className="relative ml-auto pl-2 border-l border-slate-200 flex-shrink-0 z-[100]">
         <button
           onClick={() => setShowUserMenu(!showUserMenu)}
-          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
           title="Account"
         >
           <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-sm font-medium">
@@ -200,10 +200,10 @@ export default function Header({
         {showUserMenu && (
           <>
             <div 
-              className="fixed inset-0 z-40" 
+              className="fixed inset-0 z-[90]" 
               onClick={() => setShowUserMenu(false)}
             />
-            <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
+            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-strong border border-slate-200 py-2 z-[100] animate-fade-in">
               {/* User Info */}
               <div className="px-4 py-3 border-b border-slate-200">
                 <p className="font-medium text-slate-900 truncate">{user?.name || 'User'}</p>

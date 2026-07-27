@@ -123,12 +123,12 @@ export default function DocumentCard({
       {/* Icon - Distinct look for folders vs files */}
       <div className="flex items-center justify-center py-2">
         <div 
-          className={`w-14 h-14 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${
             item.type === 'folder' ? 'border-2 border-amber-300' : ''
           }`}
           style={{ backgroundColor: fileIcon.bgColor || `${fileIcon.color}15` }}
         >
-          <Icon name={fileIcon.name} size={item.type === 'folder' ? 28 : 24} className="" style={{ color: fileIcon.color }} />
+          <Icon name={fileIcon.name} size={item.type === 'folder' ? 20 : 18} className="" style={{ color: fileIcon.color }} />
         </div>
       </div>
 
