@@ -140,7 +140,7 @@ body {
 
   /* Sidebar navigation item */
   .nav-item {
-    @apply flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+    @apply flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium
            text-navy-100 cursor-pointer
            transition-all duration-200 ease-out
            hover:bg-white/10;
@@ -152,7 +152,7 @@ body {
 
   /* Section header */
   .section-header {
-    @apply px-3 py-2 text-[13px] font-semibold uppercase tracking-wider text-navy-400;
+    @apply px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-navy-400;
   }
 
   /* DOCX Preview (docx-preview) */
