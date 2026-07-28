@@ -376,7 +376,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "run_power_tool",
-                "description": "Run file-format power tool operations such as conversion, page management, and extraction.",
+                "description": "Run file-format power tool operations such as image cropping, conversion, page management, and extraction.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -405,7 +405,8 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                                 "compress_pdf",
                                 "merge_pdfs",
                                 "extract_tables",
-                                "extract_fonts"
+                                "extract_fonts",
+                                "crop_image"
                             ],
                             "description": "Power tool operation type"
                         },
@@ -448,6 +449,16 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                             "type": "boolean",
                             "description": "Whether converted output should be saved in app storage",
                             "default": True
+                        },
+                        "crop_percentages": {
+                            "type": "object",
+                            "properties": {
+                                "top": {"type": "integer"},
+                                "bottom": {"type": "integer"},
+                                "left": {"type": "integer"},
+                                "right": {"type": "integer"}
+                            },
+                            "description": "Percentage (0-100) to crop from each side for image files (e.g. crop 10% from top -> {top: 10})"
                         },
                         "export": {
                             "type": "boolean",

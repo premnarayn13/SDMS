@@ -11,6 +11,7 @@ import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useApp } from '../context/AppContext';
 import { documentOpsApi } from '../utils/documentApi';
 import * as pdfTools from '../utils/pdfPowerTools';
+import * as imageTools from '../utils/imageTools';
 import AllFeaturesPanel from './AllFeaturesPanel';
 
 const DOCKY_SAFE_MODE_KEY = 'docky_safe_mode_enabled';
@@ -796,6 +797,50 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
           if (fileIds.length < 2) return '❌ Provide at least 2 file ids to merge.';
           await actions.mergePDFs(fileIds, outputName);
           return '✅ Merged PDFs.';
+        }
+
+        if (operation === 'crop_image') {
+          const cropPercentages = data.crop_percentages || {};
+          const blob = await ensureFileBlob();
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(blob);
+          });
+
+          // Create image to get natural dimensions
+          const img = new Image();
+          img.src = dataUrl;
+          await new Promise((resolve) => { img.onload = resolve; });
+
+          const srcW = img.naturalWidth;
+          const srcH = img.naturalHeight;
+
+          const pTop = Math.max(0, Math.min(100, cropPercentages.top || 0)) / 100;
+          const pBottom = Math.max(0, Math.min(100, cropPercentages.bottom || 0)) / 100;
+          const pLeft = Math.max(0, Math.min(100, cropPercentages.left || 0)) / 100;
+          const pRight = Math.max(0, Math.min(100, cropPercentages.right || 0)) / 100;
+
+          const crop = {
+            x: Math.round(srcW * pLeft),
+            y: Math.round(srcH * pTop),
+            width: Math.max(1, Math.round(srcW * (1 - pLeft - pRight))),
+            height: Math.max(1, Math.round(srcH * (1 - pTop - pBottom)))
+          };
+
+          const newFormat = sourceExt || 'png';
+          const newMime = newFormat === 'jpg' || newFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+          
+          const croppedDataUrl = await imageTools.transformImage(dataUrl, { crop, format: newFormat, quality: 0.95 });
+          const croppedBlob = await imageTools.dataUrlToBlob(croppedDataUrl);
+          
+          if (saveToStorage) {
+            const prefix = sourceName.split('.').slice(0, -1).join('.') || sourceName;
+            const newName = `${prefix}_cropped.${newFormat}`;
+            await actions.uploadFile(new File([croppedBlob], newName, { type: newMime }), null);
+          }
+          
+          return `✅ Cropped image.`;
         }
 
         if (operation === 'extract_tables') {
