@@ -118,6 +118,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
   const [pageOrder, setPageOrder] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [pdfInfo, setPdfInfo] = useState(null);
+  const [pdfMetadata, setPdfMetadata] = useState({ title: '', author: '', subject: '', keywords: '' });
   const [extractPagesInput, setExtractPagesInput] = useState('');
   const [extractImageRange, setExtractImageRange] = useState({ start: 1, end: '' });
   const [blankPageMinChars, setBlankPageMinChars] = useState(1);
@@ -869,17 +870,13 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     }, 'Pages duplicated and saved!');
   };
 
-  // 8. Merge PDFs
-  const handleMergePDFs = async () => {
-    if (selectedFiles.length < 2) {
-      showMessage('error', 'Select at least 2 PDF files to merge');
-      return;
-    }
+  // 8. Edit Metadata
+  const handleUpdateMetadata = async () => {
     executeAction(async () => {
-      const mergedBytes = await pdfTools.mergePDFFiles(selectedFiles);
-      const outputName = makePdfOutputName('merged');
-      await saveConvertedToStorage(mergedBytes, outputName, 'application/pdf');
-    }, 'PDFs merged and saved in storage!');
+      const updatedBytes = await pdfTools.updatePDFMetadata(await getItemUrl(), pdfMetadata);
+      const outputName = makePdfOutputName('metadata');
+      await saveConvertedToStorage(updatedBytes, outputName, 'application/pdf');
+    }, 'PDF metadata updated and saved!');
   };
 
   // 9. Split PDF
@@ -1206,18 +1203,6 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
   // =============================================
   // IMAGE SPECIFIC HANDLERS (Feature 15)
   // =============================================
-
-  // 15. Images to PDF
-  const handleImagesToPDF = async () => {
-    if (selectedFiles.length === 0) {
-      showMessage('error', 'Select image files first');
-      return;
-    }
-    executeAction(async () => {
-      const pdfBytes = await pdfTools.imagesToPDF(selectedFiles, { pageSize: 'A4', orientation: 'portrait' });
-      await saveConvertedToStorage(pdfBytes, 'images_to_pdf.pdf', 'application/pdf');
-    }, 'Images converted to PDF!');
-  };
 
   // Single image to PDF
   const handleSingleImageToPDF = async () => {
@@ -1552,7 +1537,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
       <ToolSection title="Organize" icon="folder">
         <div className="grid grid-cols-3 gap-2">
           <ToolButton icon="compress" label="Compress" onClick={handleCompressPDF} small direct />
-          <ToolButton icon="merge" label="Merge" onClick={() => setActiveSection('merge')} small />
+          <ToolButton icon="edit" label="Metadata" onClick={() => setActiveSection('metadata')} small />
           <ToolButton icon="split" label="Split" onClick={() => setActiveSection('split')} small />
         </div>
       </ToolSection>
@@ -1583,28 +1568,6 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
         <button onClick={handleSingleImageToPDF} className="btn-primary px-6 py-2">
           <Icon name="convert" size={14} className="mr-2" />
           Convert to PDF
-        </button>
-      </div>
-      <div className="border-t border-navy-100 pt-4">
-        <h4 className="text-xs font-medium text-navy-500 uppercase tracking-wide mb-3">Batch Convert</h4>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
-          className="input w-full text-sm mb-2"
-        />
-        {selectedFiles.length > 0 && (
-          <p className="text-xs text-green-600 mb-2 flex items-center gap-1">
-            <Icon name="check" size={12} /> {selectedFiles.length} image(s) selected
-          </p>
-        )}
-        <button 
-          onClick={handleImagesToPDF} 
-          className="btn-secondary w-full text-sm"
-          disabled={selectedFiles.length === 0}
-        >
-          Combine {selectedFiles.length || 0} Images to PDF
         </button>
       </div>
 
@@ -2257,33 +2220,55 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     </Section>
   );
 
-  const renderMergeSection = () => (
-    <Section title="Merge PDFs" icon="merge" onBack={() => setActiveSection('main')}>
+  const renderMetadataSection = () => (
+    <Section title="Edit Metadata" icon="edit" onBack={() => setActiveSection('main')}>
       <div className="space-y-3">
-        <p className="text-xs text-navy-500">Select multiple PDF files to merge</p>
-        <input
-          type="file"
-          accept=".pdf"
-          multiple
-          onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
-          className="input w-full text-sm"
-        />
-        {selectedFiles.length > 0 && (
-          <div className="bg-navy-50 rounded-lg p-3 max-h-32 overflow-y-auto border border-navy-100">
-            <p className="text-xs font-medium text-navy-700 mb-2">Files ({selectedFiles.length}):</p>
-            <ol className="text-xs space-y-1 text-navy-600">
-              {selectedFiles.map((f, i) => (
-                <li key={i}>{i + 1}. {f.name}</li>
-              ))}
-            </ol>
-          </div>
-        )}
+        <p className="text-xs text-navy-500">Update PDF properties (Title, Author, etc.)</p>
+        <div>
+          <label className="block text-xs font-medium text-navy-700 mb-1">Title</label>
+          <input
+            type="text"
+            value={pdfMetadata.title}
+            onChange={(e) => setPdfMetadata({ ...pdfMetadata, title: e.target.value })}
+            className="input w-full text-sm"
+            placeholder={pdfInfo?.info?.Title || 'Document Title'}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-navy-700 mb-1">Author</label>
+          <input
+            type="text"
+            value={pdfMetadata.author}
+            onChange={(e) => setPdfMetadata({ ...pdfMetadata, author: e.target.value })}
+            className="input w-full text-sm"
+            placeholder={pdfInfo?.info?.Author || 'Document Author'}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-navy-700 mb-1">Subject</label>
+          <input
+            type="text"
+            value={pdfMetadata.subject}
+            onChange={(e) => setPdfMetadata({ ...pdfMetadata, subject: e.target.value })}
+            className="input w-full text-sm"
+            placeholder={pdfInfo?.info?.Subject || 'Document Subject'}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-navy-700 mb-1">Keywords (comma separated)</label>
+          <input
+            type="text"
+            value={pdfMetadata.keywords}
+            onChange={(e) => setPdfMetadata({ ...pdfMetadata, keywords: e.target.value })}
+            className="input w-full text-sm"
+            placeholder={pdfInfo?.info?.Keywords || 'keyword1, keyword2'}
+          />
+        </div>
         <button
-          onClick={handleMergePDFs}
-          className="btn-primary w-full"
-          disabled={selectedFiles.length < 2}
+          onClick={handleUpdateMetadata}
+          className="btn-primary w-full mt-2"
         >
-          Merge {selectedFiles.length} PDFs
+          Update Metadata
         </button>
       </div>
     </Section>
@@ -2665,7 +2650,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
         case 'watermark': return renderWatermarkSection();
         case 'background': return renderBackgroundSection();
         case 'pages': return renderPagesSection();
-        case 'merge': return renderMergeSection();
+        case 'metadata': return renderMetadataSection();
         case 'split': return renderSplitSection();
         case 'reorder': return renderReorderSection();
         case 'security': return renderSecuritySection();

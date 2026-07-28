@@ -1955,6 +1955,23 @@ export async function extractPageSummaryCSV(pdfUrl) {
   }
 }
 
+export async function updatePDFMetadata(pdfUrl, metadata = {}) {
+  try {
+    const pdfBytes = await fetchPdfBytes(pdfUrl);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    
+    if (metadata.title !== undefined) pdfDoc.setTitle(metadata.title || '');
+    if (metadata.author !== undefined) pdfDoc.setAuthor(metadata.author || '');
+    if (metadata.subject !== undefined) pdfDoc.setSubject(metadata.subject || '');
+    if (metadata.keywords !== undefined) pdfDoc.setKeywords(metadata.keywords ? metadata.keywords.split(',').map(k => k.trim()) : []);
+    
+    return await pdfDoc.save();
+  } catch (err) {
+    console.error('Failed to update PDF metadata:', err);
+    throw new Error('Could not update metadata');
+  }
+}
+
 export async function getPDFInfo(pdfUrl) {
   try {
     const pdfBytes = await fetchPdfBytes(pdfUrl);
@@ -2053,6 +2070,7 @@ export default {
   compressPDF,
   rotatePDF,
   getPDFInfo,
+  updatePDFMetadata,
   savePDFAs,
   downloadBytes,
   downloadAsZip,
