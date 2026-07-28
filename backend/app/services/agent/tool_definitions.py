@@ -376,7 +376,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "run_power_tool",
-                "description": "Run file-format power tool operations such as image cropping, conversion, page management, and extraction.",
+                "description": "Run file-format power tool operations such as image transformation (brightness, contrast, crop, rotate, resize), conversion, page management, and extraction.",
                 "parameters": {
                     "type": "object",
                     "properties": {

@@ -166,6 +166,8 @@ ALLOWED_TOOLS: Set[str] = {
     "reorder_pdf_pages",  # Creates new file
     "duplicate_pdf_pages",  # Creates new file
     "add_pdf_watermark",  # Creates new file (non-destructive marking)
+    "run_power_tool",     # Added this to allow image cropping and all power tools
+
     # Word Power Tools
     "extract_docx_text",
     "convert_docx_to_pdf",
