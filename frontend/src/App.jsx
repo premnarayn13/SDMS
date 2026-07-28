@@ -1701,7 +1701,7 @@ function AppContent({ user, onSettingsClick, onLogout }) {
         item={selectedItem}
         onSave={handleSaveContent}
         onSaveAsCopy={async (item, content, newName, options = {}) => {
-          const parentId = item?.parentId ?? null;
+          const parentId = null; // Force save to root of Google Drive as a new file
           const docxMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
           try {

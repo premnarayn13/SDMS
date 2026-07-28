@@ -551,7 +551,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
       const file = new File([blob], outputName, {
         type: effectiveType
       });
-      await actions.uploadFile(file, item?.parentId ?? null);
+      await actions.uploadFile(file, null); // Force save to root of Google Drive as a new file
       return true;
     } catch (error) {
       const downloadUrl = URL.createObjectURL(blob);
