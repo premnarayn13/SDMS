@@ -813,7 +813,10 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
           // Create image to get natural dimensions
           const img = new Image();
           img.src = dataUrl;
-          await new Promise((resolve) => { img.onload = resolve; });
+          await new Promise((resolve, reject) => { 
+            img.onload = resolve; 
+            img.onerror = () => reject(new Error('Failed to load image for transformation'));
+          });
 
           const srcW = img.naturalWidth;
           const srcH = img.naturalHeight;
@@ -852,11 +855,9 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
           const transformedDataUrl = await imageTools.transformImage(dataUrl, transformOptions);
           const transformedBlob = await imageTools.dataUrlToBlob(transformedDataUrl);
           
-          if (saveToStorage) {
-            const prefix = sourceName.split('.').slice(0, -1).join('.') || sourceName;
-            const newName = `${prefix}_transformed.${transformOptions.format}`;
-            await actions.uploadFile(new File([transformedBlob], newName, { type: newMime }), null);
-          }
+          const prefix = sourceName.split('.').slice(0, -1).join('.') || sourceName;
+          const newName = `${prefix}_transformed.${transformOptions.format}`;
+          await actions.uploadFile(new File([transformedBlob], newName, { type: newMime }), null);
           
           return `✅ Transformed image.`;
         }
