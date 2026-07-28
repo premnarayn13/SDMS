@@ -799,8 +799,10 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
           return '✅ Merged PDFs.';
         }
 
-        if (operation === 'crop_image') {
+        if (operation === 'transform_image') {
           const cropPercentages = data.crop_percentages || {};
+          const imageTransform = data.image_transform || {};
+          
           const blob = await ensureFileBlob();
           const dataUrl = await new Promise((resolve) => {
             const reader = new FileReader();
@@ -828,19 +830,35 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
             height: Math.max(1, Math.round(srcH * (1 - pTop - pBottom)))
           };
 
-          const newFormat = sourceExt || 'png';
-          const newMime = newFormat === 'jpg' || newFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+          const resize = (imageTransform.resize_width || imageTransform.resize_height) 
+            ? { width: imageTransform.resize_width || null, height: imageTransform.resize_height || null }
+            : null;
+
+          const transformOptions = {
+            crop,
+            resize,
+            brightness: imageTransform.brightness ?? 100,
+            contrast: imageTransform.contrast ?? 100,
+            grayscale: !!imageTransform.grayscale,
+            rotate: imageTransform.rotate ?? 0,
+            flipH: !!imageTransform.flip_h,
+            flipV: !!imageTransform.flip_v,
+            format: sourceExt || 'png',
+            quality: 0.95
+          };
+
+          const newMime = transformOptions.format === 'jpg' || transformOptions.format === 'jpeg' ? 'image/jpeg' : 'image/png';
           
-          const croppedDataUrl = await imageTools.transformImage(dataUrl, { crop, format: newFormat, quality: 0.95 });
-          const croppedBlob = await imageTools.dataUrlToBlob(croppedDataUrl);
+          const transformedDataUrl = await imageTools.transformImage(dataUrl, transformOptions);
+          const transformedBlob = await imageTools.dataUrlToBlob(transformedDataUrl);
           
           if (saveToStorage) {
             const prefix = sourceName.split('.').slice(0, -1).join('.') || sourceName;
-            const newName = `${prefix}_cropped.${newFormat}`;
-            await actions.uploadFile(new File([croppedBlob], newName, { type: newMime }), null);
+            const newName = `${prefix}_transformed.${transformOptions.format}`;
+            await actions.uploadFile(new File([transformedBlob], newName, { type: newMime }), null);
           }
           
-          return `✅ Cropped image.`;
+          return `✅ Transformed image.`;
         }
 
         if (operation === 'extract_tables') {

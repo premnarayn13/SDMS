@@ -406,7 +406,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                                 "merge_pdfs",
                                 "extract_tables",
                                 "extract_fonts",
-                                "crop_image"
+                                "transform_image"
                             ],
                             "description": "Power tool operation type"
                         },
@@ -459,6 +459,20 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                                 "right": {"type": "integer"}
                             },
                             "description": "Percentage (0-100) to crop from each side for image files (e.g. crop 10% from top -> {top: 10})"
+                        },
+                        "image_transform": {
+                            "type": "object",
+                            "properties": {
+                                "brightness": {"type": "integer", "description": "0-400, default 100"},
+                                "contrast": {"type": "integer", "description": "0-400, default 100"},
+                                "grayscale": {"type": "boolean"},
+                                "rotate": {"type": "integer", "description": "Degrees to rotate"},
+                                "flip_h": {"type": "boolean"},
+                                "flip_v": {"type": "boolean"},
+                                "resize_width": {"type": "integer"},
+                                "resize_height": {"type": "integer"}
+                            },
+                            "description": "Image transformation parameters"
                         },
                         "export": {
                             "type": "boolean",
