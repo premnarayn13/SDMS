@@ -4,6 +4,11 @@ from typing import Optional, List
 import base64
 import os
 import shutil
+import asyncio
+
+# Fix for mega.py (tenacity<6.0.0 uses asyncio.coroutine which is removed in Python 3.11)
+if not hasattr(asyncio, "coroutine"):
+    asyncio.coroutine = lambda f: f
 import uuid
 from datetime import datetime
 from pydantic import BaseModel

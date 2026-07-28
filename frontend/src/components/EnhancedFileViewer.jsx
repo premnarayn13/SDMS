@@ -283,8 +283,6 @@ export default function EnhancedFileViewer({
   const [imageFlipH, setImageFlipH] = useState(false);
   const [imageFlipV, setImageFlipV] = useState(false);
   const [slideshowActive, setSlideshowActive] = useState(false);
-  const [showExif, setShowExif] = useState(false);
-  const [cropMode, setCropMode] = useState(false);
   
   // Annotations state (Enhanced)
   const [annotations, setAnnotations] = useState([]);
@@ -1721,10 +1719,10 @@ export default function EnhancedFileViewer({
                 <button onClick={handleFlipVertical} className="pdf-toolbar-btn" title="Flip Vertical">
                   <Icon name="flipVertical" size={14} />
                 </button>
-                <button onClick={() => setShowExif(!showExif)} className="pdf-toolbar-btn" title="EXIF Data">
+                <button onClick={() => handleOpenPowerTools('main')} className="pdf-toolbar-btn" title="EXIF Data">
                   <Icon name="info" size={14} /> EXIF
                 </button>
-                <button onClick={() => setCropMode(!cropMode)} className="pdf-toolbar-btn" title="Crop">
+                <button onClick={() => handleOpenPowerTools('main')} className="pdf-toolbar-btn" title="Crop">
                   <Icon name="cut" size={14} /> Crop
                 </button>
                 <button onClick={() => setSlideshowActive(!slideshowActive)} className="pdf-toolbar-btn" title="Slideshow">
@@ -1812,7 +1810,7 @@ export default function EnhancedFileViewer({
             )}
 
             {/* Search */}
-            {!isMedia && (
+            {!isMedia && !isImage && (
               <button onClick={() => setShowSearch(true)} className="pdf-toolbar-btn">
                 <Icon name="search" size={14} /> Find
               </button>
@@ -2505,6 +2503,18 @@ export default function EnhancedFileViewer({
                   src={resolvedPreviewUrl || item.preview || '/placeholder-image.png'}
                   zoomLevel={zoomLevel}
                   onCreateDerivedFile={handleCreateDerivedFile}
+                  extRotate={imageRotation}
+                  setExtRotate={setImageRotation}
+                  extBrightness={imageBrightness}
+                  setExtBrightness={setImageBrightness}
+                  extContrast={imageContrast}
+                  setExtContrast={setImageContrast}
+                  extSaturation={imageSaturation}
+                  setExtSaturation={setImageSaturation}
+                  extFlipH={imageFlipH}
+                  setExtFlipH={setImageFlipH}
+                  extFlipV={imageFlipV}
+                  setExtFlipV={setImageFlipV}
                 />
               </div>
             ) : isVideo ? (

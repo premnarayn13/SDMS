@@ -12,6 +12,12 @@ from typing import Optional
 from contextlib import asynccontextmanager
 import base64
 import logging
+import asyncio
+
+# Fix for mega.py (tenacity<6.0.0 uses asyncio.coroutine which is removed in Python 3.11)
+if not hasattr(asyncio, "coroutine"):
+    asyncio.coroutine = lambda f: f
+
 
 # Legacy imports (for backward compatibility)
 from .database import db

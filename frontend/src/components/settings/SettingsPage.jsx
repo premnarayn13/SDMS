@@ -775,7 +775,7 @@ export default function SettingsPage() {
     { id: 'preferences', label: 'Preferences', icon: SettingsIcon, hint: 'Theme and notification behavior' },
     { id: 'drive', label: 'Google Drive', icon: HardDrive, hint: 'Primary and multi-drive workspace' },
     { id: 'storage', label: 'Storage', icon: HardDrive, hint: 'Usage analytics and file distribution' },
-    { id: 'mega', label: 'MEGA Storage', icon: HardDrive, hint: 'External storage operations' },
+    //{ id: 'mega', label: 'MEGA Storage', icon: HardDrive, hint: 'External storage operations' },
     { id: 'security', label: 'Security', icon: Shield, hint: 'Session history and account safety' },
   ];
   const quickActions = [

@@ -10,18 +10,46 @@ import {
   imageToTextOcr
 } from '../utils/imageTools';
 
-export default function ImageWorkbench({ item, src, zoomLevel = 100, onCreateDerivedFile }) {
+export default function ImageWorkbench({ 
+  item, src, zoomLevel = 100, onCreateDerivedFile,
+  extRotate, setExtRotate,
+  extBrightness, setExtBrightness,
+  extContrast, setExtContrast,
+  extSaturation, setExtSaturation,
+  extFlipH, setExtFlipH,
+  extFlipV, setExtFlipV
+}) {
   const [workingSrc, setWorkingSrc] = useState(src || '');
   const [metadata, setMetadata] = useState(null);
   const [busy, setBusy] = useState(false);
   const [ocrText, setOcrText] = useState('');
   const [error, setError] = useState('');
 
-  const [rotate, setRotate] = useState(0);
-  const [flipH, setFlipH] = useState(false);
-  const [flipV, setFlipV] = useState(false);
-  const [brightness, setBrightness] = useState(100);
-  const [contrast, setContrast] = useState(100);
+  const [localRotate, setLocalRotate] = useState(0);
+  const [localFlipH, setLocalFlipH] = useState(false);
+  const [localFlipV, setLocalFlipV] = useState(false);
+  const [localBrightness, setLocalBrightness] = useState(100);
+  const [localContrast, setLocalContrast] = useState(100);
+  const [localSaturation, setLocalSaturation] = useState(100);
+  
+  const rotate = extRotate !== undefined ? extRotate : localRotate;
+  const setRotate = setExtRotate || setLocalRotate;
+  
+  const flipH = extFlipH !== undefined ? extFlipH : localFlipH;
+  const setFlipH = setExtFlipH || setLocalFlipH;
+  
+  const flipV = extFlipV !== undefined ? extFlipV : localFlipV;
+  const setFlipV = setExtFlipV || setLocalFlipV;
+  
+  const brightness = extBrightness !== undefined ? extBrightness : localBrightness;
+  const setBrightness = setExtBrightness || setLocalBrightness;
+  
+  const contrast = extContrast !== undefined ? extContrast : localContrast;
+  const setContrast = setExtContrast || setLocalContrast;
+  
+  const saturation = extSaturation !== undefined ? extSaturation : localSaturation;
+  const setSaturation = setExtSaturation || setLocalSaturation;
+
   const [grayscale, setGrayscale] = useState(false);
   const [quality, setQuality] = useState(75);
   const [resizeWidth, setResizeWidth] = useState('');
@@ -58,9 +86,9 @@ export default function ImageWorkbench({ item, src, zoomLevel = 100, onCreateDer
 
   const imageStyle = useMemo(() => ({
     transform: `scale(${zoomLevel / 100}) rotate(${rotate}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
-    filter: `brightness(${brightness}%) contrast(${contrast}%) ${grayscale ? 'grayscale(100%)' : ''}`,
+    filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) ${grayscale ? 'grayscale(100%)' : ''}`,
     transition: 'all 0.2s ease'
-  }), [zoomLevel, rotate, flipH, flipV, brightness, contrast, grayscale]);
+  }), [zoomLevel, rotate, flipH, flipV, brightness, contrast, saturation, grayscale]);
 
   const deriveName = (suffix, ext = null) => {
     const name = item?.name || 'image.png';
@@ -106,6 +134,7 @@ export default function ImageWorkbench({ item, src, zoomLevel = 100, onCreateDer
       flipV,
       brightness,
       contrast,
+      saturation,
       grayscale,
       crop,
       resize,
@@ -231,6 +260,10 @@ export default function ImageWorkbench({ item, src, zoomLevel = 100, onCreateDer
         <div>
           <label className="block mb-1">Contrast {contrast}%</label>
           <input type="range" min="0" max="200" value={contrast} onChange={(e) => setContrast(Number(e.target.value))} className="w-full" />
+        </div>
+        <div>
+          <label className="block mb-1">Saturation {saturation}%</label>
+          <input type="range" min="0" max="200" value={saturation} onChange={(e) => setSaturation(Number(e.target.value))} className="w-full" />
         </div>
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={grayscale} onChange={(e) => setGrayscale(e.target.checked)} />
