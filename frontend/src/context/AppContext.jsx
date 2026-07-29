@@ -1661,30 +1661,9 @@ if (String(itemId).startsWith("mega:")) {
         const mergedPdfBytes = await mergeUtil(pdfUrls);
         
         // Save result as new file
-        const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-        const dataUrl = URL.createObjectURL(blob);
-        
-        const newFile = {
-          id: generateId(),
-          name: outputName.endsWith('.pdf') ? outputName : `${outputName}.pdf`,
-          type: 'file',
-          size: mergedPdfBytes.length,
-          date: getCurrentDate(),
-          created: getCurrentDate(),
-          lastAccessed: getCurrentDate(),
-          parentId: state.currentFolder,
-          dataUrl,
-          fileType: 'PDF Document',
-          favorite: false,
-          tags: [],
-          shared: [],
-          trash: false,
-          history: [{ action: 'Created by Merging', date: getCurrentDateTime(), user: 'Admin' }]
-        };
-        
-        const newItems = [...state.items, newFile];
-        dispatch({ type: ACTIONS.SET_ITEMS, payload: newItems });
-        saveData(newItems);
+        const output = outputName.endsWith('.pdf') ? outputName : outputName + '.pdf';
+          const file = new File([mergedPdfBytes], output, { type: 'application/pdf' });
+          const newFile = await actions.uploadFile(file, state.currentFolder);
         return newFile;
       } catch (err) {
         console.error('Merge error:', err);
@@ -1701,7 +1680,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const filledBytes = await fillPDFForm(sourceUrl, formData);
-        const newFile = createDerivedPdfCopy(item, filledBytes, '_form_filled', 'Filled PDF form');
+        const newFile = await actions.createDerivedPdfCopy(item, filledBytes, '_form_filled', 'Filled PDF form');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Fill form error:', err);
@@ -1715,7 +1694,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const flattenedBytes = await saveFlattenedForm(sourceUrl);
-        const newFile = createDerivedPdfCopy(item, flattenedBytes, '_flattened', 'Flattened PDF form');
+        const newFile = await actions.createDerivedPdfCopy(item, flattenedBytes, '_flattened', 'Flattened PDF form');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Flatten form error:', err);
@@ -1730,7 +1709,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const signedBytes = await addSignatureToPDF(sourceUrl, signatureData);
-        const newFile = createDerivedPdfCopy(item, signedBytes, '_signed', 'Added signature to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, signedBytes, '_signed', 'Added signature to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add signature error:', err);
@@ -1744,7 +1723,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const signedBytes = await addMultipleSignatures(sourceUrl, signatures);
-        const newFile = createDerivedPdfCopy(item, signedBytes, '_multi_signed', 'Added multiple signatures to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, signedBytes, '_multi_signed', 'Added multiple signatures to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add multiple signatures error:', err);
@@ -1759,7 +1738,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const watermarkedBytes = await addWatermark(sourceUrl, watermarkConfig);
-        const newFile = createDerivedPdfCopy(item, watermarkedBytes, '_watermarked', 'Added watermark to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, watermarkedBytes, '_watermarked', 'Added watermark to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add watermark error:', err);
@@ -1774,7 +1753,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const bgBytes = await addPageBackground(sourceUrl, bgConfig);
-        const newFile = createDerivedPdfCopy(item, bgBytes, '_background', 'Added background to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, bgBytes, '_background', 'Added background to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add background error:', err);
@@ -1788,7 +1767,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const numberedBytes = await addPageNumbers(sourceUrl, config);
-        const newFile = createDerivedPdfCopy(item, numberedBytes, '_numbered', 'Added page numbers to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, numberedBytes, '_numbered', 'Added page numbers to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add page numbers error:', err);
@@ -1803,7 +1782,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const modifiedBytes = await addPages(sourceUrl, config);
-        const newFile = createDerivedPdfCopy(item, modifiedBytes, '_pages_added', 'Added pages to PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, modifiedBytes, '_pages_added', 'Added pages to PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Add pages error:', err);
@@ -1817,7 +1796,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const modifiedBytes = await removePages(sourceUrl, pageIndices);
-        const newFile = createDerivedPdfCopy(item, modifiedBytes, '_pages_removed', 'Removed pages from PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, modifiedBytes, '_pages_removed', 'Removed pages from PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Remove pages error:', err);
@@ -1842,7 +1821,7 @@ if (String(itemId).startsWith("mega:")) {
         const modifiedBytes = await insertPagesFromPDF(sourceUrl, insertUrl, options);
         if (insertSource instanceof File) URL.revokeObjectURL(insertUrl);
 
-        const newFile = createDerivedPdfCopy(item, modifiedBytes, '_pages_inserted', 'Inserted pages into PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, modifiedBytes, '_pages_inserted', 'Inserted pages into PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Insert pages error:', err);
@@ -1856,7 +1835,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
 
         const modifiedBytes = await duplicatePages(sourceUrl, pageIndices, copies);
-        const newFile = createDerivedPdfCopy(item, modifiedBytes, '_pages_duplicated', 'Duplicated pages in PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, modifiedBytes, '_pages_duplicated', 'Duplicated pages in PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Duplicate pages error:', err);
@@ -1958,7 +1937,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const protectedBytes = await passwordProtectPDF(sourceUrl, passwords);
-        const newFile = createDerivedPdfCopy(item, protectedBytes, '_protected', 'Password-protected PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, protectedBytes, '_protected', 'Password-protected PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Password protect error:', err);
@@ -1972,7 +1951,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const unlockedBytes = await removePasswordPDF(sourceUrl, password);
-        const newFile = createDerivedPdfCopy(item, unlockedBytes, '_unlocked', 'Removed PDF password');
+        const newFile = await actions.createDerivedPdfCopy(item, unlockedBytes, '_unlocked', 'Removed PDF password');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Remove password error:', err);
@@ -2026,31 +2005,10 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
 
         const extractedBytes = await extractPages(sourceUrl, pageIndices);
-        const blob = new Blob([extractedBytes], { type: 'application/pdf' });
-        const dataUrl = URL.createObjectURL(blob);
         const suffix = pageIndices.map(i => i + 1).join('-');
-
-        const newFile = {
-          id: generateId(),
-          name: `${item.name.replace('.pdf', '')}_extract_${suffix}.pdf`,
-          type: 'file',
-          size: extractedBytes.length,
-          date: getCurrentDate(),
-          created: getCurrentDate(),
-          lastAccessed: getCurrentDate(),
-          parentId: state.currentFolder,
-          dataUrl,
-          fileType: 'PDF Document',
-          favorite: false,
-          tags: [],
-          shared: [],
-          trash: false,
-          history: [{ action: 'Extracted pages', date: getCurrentDateTime(), user: 'Admin' }]
-        };
-
-        const updatedItems = [...state.items, newFile];
-        dispatch({ type: ACTIONS.SET_ITEMS, payload: updatedItems });
-        saveData(updatedItems);
+          const blob = new Blob([extractedBytes], { type: 'application/pdf' });
+          const file = new File([blob], item.name.replace('.pdf', '') + '_extract_' + suffix + '.pdf', { type: 'application/pdf' });
+          const newFile = await actions.uploadFile(file, state.currentFolder);
         return newFile;
       } catch (err) {
         console.error('Extract pages error:', err);
@@ -2235,7 +2193,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
         
         const reorderedBytes = await reorderPDFPages(sourceUrl, newOrder);
-        const newFile = createDerivedPdfCopy(item, reorderedBytes, '_reordered', 'Reordered PDF pages');
+        const newFile = await actions.createDerivedPdfCopy(item, reorderedBytes, '_reordered', 'Reordered PDF pages');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Reorder pages error:', err);
@@ -2249,7 +2207,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
 
         const rotatedBytes = await rotatePDF(sourceUrl, degrees, pageIndices);
-        const newFile = createDerivedPdfCopy(item, rotatedBytes, '_rotated', 'Rotated PDF pages');
+        const newFile = await actions.createDerivedPdfCopy(item, rotatedBytes, '_rotated', 'Rotated PDF pages');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Rotate PDF error:', err);
@@ -2263,7 +2221,7 @@ if (String(itemId).startsWith("mega:")) {
         const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
 
         const compressedBytes = await compressPDF(sourceUrl);
-        const newFile = createDerivedPdfCopy(item, compressedBytes, '_compressed', 'Compressed PDF');
+        const newFile = await actions.createDerivedPdfCopy(item, compressedBytes, '_compressed', 'Compressed PDF');
         return newFile.dataUrl;
       } catch (err) {
         console.error('Compress PDF error:', err);
