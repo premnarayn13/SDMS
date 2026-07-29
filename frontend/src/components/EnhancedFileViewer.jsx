@@ -2000,10 +2000,9 @@ export default function EnhancedFileViewer({
               </button>
             )}
           </div>
-        )}
 
-        {/* Annotation Toolbar */}
-        {!readMode && isPDF && showAnnotationToolbar && (
+        {/* Annotation Tools - ONLY for non-PDFs since PDF canvas doesn't support them well */}
+        {!readMode && !isPDF && showAnnotationToolbar && (
           <div className="pdf-annotation-toolbar">
             <span className="font-semibold text-navy-700 text-xs flex items-center gap-1">
               <Icon name="edit" size={12} /> Annotations:
@@ -2809,12 +2808,14 @@ export default function EnhancedFileViewer({
                 >
                   <Icon name="bookmark" size={12} /> Marks
                 </button>
-                <button
-                  onClick={() => setActiveTab('annotations')}
-                  className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'annotations' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
-                >
-                  <Icon name="edit" size={12} /> Notes
-                </button>
+                {!isPDF && (
+                  <button
+                    onClick={() => setActiveTab('annotations')}
+                    className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'annotations' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
+                  >
+                    <Icon name="edit" size={12} /> Notes
+                  </button>
+                )}
                 <button
                   onClick={() => setShowRightPanel(false)}
                   className="px-2 py-2 text-navy-400 hover:text-navy-700"

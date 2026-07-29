@@ -158,16 +158,7 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
         <div className="mb-3">
           <div className="section-header">Navigation</div>
           
-          <button
-            onClick={() => handleNavClick('home')}
-            style={{ display: 'flex' }}
-            className={`nav-item w-full ${currentView === 'home' && currentFolder === null ? 'nav-item-active' : ''}`}
-          >
-            <Icon name="home" size={18} className="opacity-80" />
-            <span>Home</span>
-          </button>
-
-          {NAV_ITEMS.filter(item => item.view !== 'home').map(item => (
+          {NAV_ITEMS.map(item => (
             <button
               key={item.view}
               onClick={() => handleNavClick(item.view)}

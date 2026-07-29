@@ -111,16 +111,20 @@ export default function Header({
         </button>
 
         {/* Bundle */}
-        {selectedItemsCount > 1 && (
-          <button
-            onClick={onBundleClick}
-            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 whitespace-nowrap"
-            title="Bundle"
-          >
-            <Icon name="folder" size={13} />
-            <span>Bundle</span>
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (selectedItemsCount > 1) {
+              onBundleClick();
+            } else {
+              alert("Select multiple files to bundle them into an archive");
+            }
+          }}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 whitespace-nowrap"
+          title="Bundle"
+        >
+          <Icon name="folder" size={13} />
+          <span>Bundle</span>
+        </button>
 
         {/* Power Tools */}
         <button
