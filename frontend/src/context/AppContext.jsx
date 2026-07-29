@@ -700,6 +700,14 @@ if (String(itemId).startsWith("mega:")) {
 
   // Actions
   const actions = {
+    createDerivedPdfCopy: async (sourceItem, pdfBytes, suffix, actionLabel) => {
+      const baseName = sourceItem?.name || 'document.pdf';
+      const safeBaseName = /\.pdf$/i.test(baseName) ? baseName : baseName + '.pdf';
+      const derivedName = safeBaseName.replace(/\.pdf$/i, suffix + '.pdf');
+      const file = new File([pdfBytes], derivedName, { type: 'application/pdf' });
+      const parentId = sourceItem?.parentId ?? state.currentFolder;
+      return await actions.uploadFile(file, parentId);
+    },
     refreshItems: async () => {
       if (isCloudMode()) {
         try {
