@@ -158,19 +158,23 @@ export default function Sidebar({ onFilterByTag, onActivityClick, onOpenItem, wi
         <div className="mb-3">
           <div className="section-header">Navigation</div>
           
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.view}
-              onClick={() => handleNavClick(item.view)}
-              style={{ display: 'flex' }}
-              className={`nav-item w-full ${
-                currentView === item.view && currentFolder === null ? 'nav-item-active' : ''
-              }`}
-            >
-              <Icon name={item.icon} size={18} className="opacity-80" />
-              <span>{item.label}</span>
-            </button>
-          ))}
+          {NAV_ITEMS.map(item => {
+            const isActive = currentView === item.view && currentFolder === null;
+            return (
+              <button
+                key={item.view}
+                onClick={() => handleNavClick(item.view)}
+                style={{ 
+                  display: 'flex',
+                  ...(isActive ? { backgroundColor: 'rgba(255,255,255,0.15)', color: 'white' } : {})
+                }}
+                className={`nav-item w-full`}
+              >
+                <Icon name={item.icon} size={18} className="opacity-80" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Quick Access (Pinned) */}

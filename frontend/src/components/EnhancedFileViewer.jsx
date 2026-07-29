@@ -694,30 +694,13 @@ export default function EnhancedFileViewer({
   }, []);
 
   const loadPDF = async (url) => {
-    console.log('Loading PDF from:', url?.substring(0, 50) + '...');
-    try {
-      setPdfRendering(true);
-      setPdfError(false);
-      setPdfErrorDetail('');
-      setDriveReconnectUrl('');
-      setUseFallbackViewer(false);
-      
-      // Try PDF.js first
-      const loadingTask = pdfjsLib.getDocument(url);
-      const pdf = await loadingTask.promise;
-      console.log('PDF.js loaded successfully, pages:', pdf.numPages);
-      setPdfDoc(pdf);
-      setTotalPages(pdf.numPages);
-      setCurrentPage(1);
-      setPdfRendering(false);
-    } catch (error) {
-      console.error('Error loading PDF with PDF.js:', error);
-      console.log('Falling back to native browser PDF viewer');
-      setPdfRendering(false);
-      setPdfError(true);
-      // Use browser's native PDF viewer as fallback
-      setUseFallbackViewer(true);
-    }
+    console.log('Loading native PDF viewer for:', url?.substring(0, 50) + '...');
+    setPdfRendering(false);
+    setPdfError(false);
+    setPdfErrorDetail('');
+    setDriveReconnectUrl('');
+    // User specifically requested the native browser PDF viewer instead of custom UI
+    setUseFallbackViewer(true);
   };
 
   const loadLegacyDocumentPayload = async (fileId) => {
@@ -1770,14 +1753,18 @@ export default function EnhancedFileViewer({
                 <button onClick={() => handleOpenPowerTools('split')} className="pdf-toolbar-btn">
                   <Icon name="split" size={14} /> Split
                 </button>
-                <button
-                  onClick={() => setShowAnnotationToolbar(prev => !prev)}
-                  className={`pdf-toolbar-btn ${showAnnotationToolbar ? 'pdf-toolbar-btn-active' : ''}`}
-                  title="Show or hide annotation tools"
-                >
-                  <Icon name="edit" size={14} /> Annotations
-                </button>
-                <div className="h-4 w-px bg-navy-300 mx-1 shrink-0"></div>
+                {!isPDF && (
+                  <>
+                    <button
+                      onClick={() => setShowAnnotationToolbar(!showAnnotationToolbar)}
+                      className={`pdf-toolbar-btn ${showAnnotationToolbar ? 'pdf-toolbar-btn-active' : ''}`}
+                      title="Show or hide annotation tools"
+                    >
+                      <Icon name="edit" size={14} /> Annotations
+                    </button>
+                    <div className="h-4 w-px bg-navy-300 mx-1 shrink-0"></div>
+                  </>
+                )}
               </>
             )}
 
