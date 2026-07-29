@@ -13,6 +13,7 @@ import { useApp } from '../context/AppContext';
 import * as pdfTools from '../utils/pdfPowerTools';
 import { Icons } from '../utils/helpers';
 import { tokenUtils } from '../utils/authApi';
+import { documentOpsApi } from '../utils/documentApi';
 import { extractErrorText, isDriveAuthError, getDriveReauthorizeUrl } from '../utils/driveRecovery';
 import mammoth from 'mammoth';
 import { extractZipArchive } from '../utils/compression';
@@ -629,7 +630,9 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
       try {
         const file = new File([blob], entry.name, { type: 'application/pdf' });
         await actions.uploadFile(file, targetFolderId);
-      } catch {
+        savedCount++;
+      } catch (error) {
+        console.error("Failed to upload file to platform, falling back to download:", error);
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
@@ -639,7 +642,6 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
         document.body.removeChild(link);
         URL.revokeObjectURL(downloadUrl);
       }
-      savedCount += 1;
     }
 
     return { folderName, savedCount };
@@ -887,11 +889,27 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     }
     executeAction(async () => {
       const currentUrl = await getItemUrl();
-      const urlsToMerge = [currentUrl, ...mergeFilesList.map(f => URL.createObjectURL(f))];
+      const urlsToMerge = [currentUrl];
+      
+      for (const f of mergeFilesList) {
+        let pdfUrl;
+        if (f.dataUrl) {
+          pdfUrl = f.dataUrl;
+        } else {
+          // Download blob from the platform
+          const blob = await documentOpsApi.downloadDocument(f.id);
+          pdfUrl = URL.createObjectURL(blob);
+        }
+        urlsToMerge.push(pdfUrl);
+      }
+
       const mergedBytes = await pdfTools.mergePDFs(urlsToMerge);
       
+      // Cleanup object URLs for platform files that didn't have a dataUrl
       for (let i = 1; i < urlsToMerge.length; i++) {
+        if (!mergeFilesList[i-1].dataUrl) {
           URL.revokeObjectURL(urlsToMerge[i]);
+        }
       }
 
       const outputName = `${getPdfBaseName()}_merged_${getTimestampToken()}.pdf`;
@@ -2296,36 +2314,65 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     </Section>
   );
 
-  const renderMergeSection = () => (
-    <Section title="Merge PDFs" icon="merge" onBack={() => setActiveSection('main')}>
-      <div className="space-y-3">
-        <p className="text-xs text-navy-500 mb-2">Select PDFs to append to the current document</p>
-        <input
-          type="file"
-          accept=".pdf,application/pdf"
-          multiple
-          onChange={(e) => {
-            if (e.target.files) {
-              setMergeFilesList(Array.from(e.target.files));
-            }
-          }}
-          className="input w-full text-sm mb-2"
-        />
-        {mergeFilesList.length > 0 && (
-          <div className="text-xs text-navy-600 mb-2">
-            Selected {mergeFilesList.length} file(s) to merge.
+  const renderMergeSection = () => {
+    const platformPdfs = (state?.items || []).filter(i => i.type === 'file' && i.mimeType === 'application/pdf' && i.id !== item?.id);
+
+    return (
+      <Section title="Merge PDFs" icon="merge" onBack={() => setActiveSection('main')}>
+        <div className="space-y-4">
+          <p className="text-xs text-navy-600 mb-2 font-medium">Select PDFs from your platform to merge</p>
+          
+          <div className="max-h-60 overflow-y-auto border border-navy-200 rounded-lg p-2 bg-white space-y-1">
+            {platformPdfs.length === 0 ? (
+              <p className="text-xs text-navy-500 text-center py-4">No other PDFs found in your platform storage.</p>
+            ) : (
+              platformPdfs.map(pdf => (
+                <label key={pdf.id} className="flex items-center gap-2 p-2 hover:bg-navy-50 rounded cursor-pointer border border-transparent hover:border-navy-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={mergeFilesList.some(f => f.id === pdf.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setMergeFilesList([...mergeFilesList, pdf]);
+                      } else {
+                        setMergeFilesList(mergeFilesList.filter(f => f.id !== pdf.id));
+                      }
+                    }}
+                    className="rounded border-navy-300 text-navy-600 focus:ring-navy-600"
+                  />
+                  <Icon name="pdf" size={14} className="text-red-500" />
+                  <span className="text-xs text-navy-800 truncate flex-1">{pdf.name}</span>
+                </label>
+              ))
+            )}
           </div>
-        )}
-        <button 
-          onClick={handleMergeMultiplePDFs} 
-          className="btn-primary w-full text-sm"
-          disabled={mergeFilesList.length === 0}
-        >
-          Merge and Save
-        </button>
-      </div>
-    </Section>
-  );
+
+          {mergeFilesList.length > 0 && (
+            <div className="bg-navy-50 rounded-lg p-3 border border-navy-100 text-xs text-navy-700">
+              <span className="font-semibold text-navy-900 block mb-1">Merge Order:</span>
+              <div className="flex flex-col gap-1">
+                <div className="truncate text-navy-600 font-medium">1. {item?.name} (Current)</div>
+                {mergeFilesList.map((f, idx) => (
+                  <div key={f.id} className="truncate ml-1">
+                    {idx + 2}. {f.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button 
+            onClick={handleMergeMultiplePDFs} 
+            className="btn-primary w-full text-sm mt-4"
+            disabled={mergeFilesList.length === 0}
+          >
+            <Icon name="merge" size={16} className="mr-2" />
+            Merge and Save
+          </button>
+        </div>
+      </Section>
+    );
+  };
 
   const renderSplitSection = () => (
     <Section title="Split PDF" icon="split" onBack={() => setActiveSection('main')}>
