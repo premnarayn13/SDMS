@@ -86,3 +86,6 @@ Docky supports continuous voice listening and Text-to-Speech (TTS) for a fully h
 
 ### Document Analytics
 Get insights into your document storage usage, file types, and history directly from the AI agent or dashboard.
+
+### Realtime Status
+Docky utilizes a WebSocket connection to stream live status updates of long-running autonomous actions straight to the UI.
