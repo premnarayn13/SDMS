@@ -80,3 +80,6 @@ Docky can now natively execute all of the PDF power tools directly via natural l
 
 ### Native PDF Viewer
 SDMS seamlessly falls back to the native browser PDF viewer for optimal performance and rendering of complex PDF documents.
+
+### Interactive Voice Mode
+Docky supports continuous voice listening and Text-to-Speech (TTS) for a fully hands-free document management experience.
