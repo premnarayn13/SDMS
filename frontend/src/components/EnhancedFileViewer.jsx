@@ -1300,7 +1300,7 @@ export default function EnhancedFileViewer({
   };
 
   const handleViewerClick = (event) => {
-    if (!annotationTool || !pointAnnotationTools.includes(annotationTool)) {
+    if (!annotationTool) {
       return;
     }
 
@@ -1319,16 +1319,17 @@ export default function EnhancedFileViewer({
     };
 
     let noteText = selectedText?.trim() || '';
-    if ((annotationTool === 'text' || annotationTool === 'sticky') && !noteText) {
-      const entered = window.prompt('Enter annotation text:');
+    if (!noteText && (annotationTool === 'text' || annotationTool === 'sticky' || inlineAnnotationTools.includes(annotationTool))) {
+      const entered = window.prompt(`Enter text to ${annotationTool}:`);
       if (!entered || !entered.trim()) return;
       noteText = entered.trim();
     }
 
     handleAddAnnotation(annotationTool, {
-      text: noteText || `${annotationTool} annotation`,
-      position
+      position,
+      text: noteText || `${annotationTool} mark`
     });
+    setAnnotationTool(null);
   };
 
   const handleQuickAnnotationAction = (type) => {
@@ -2802,7 +2803,18 @@ export default function EnhancedFileViewer({
                 >
                   <Icon name="info" size={12} /> Info
                 </button>
-                {/* Bookmarks and Annotations tabs have been removed as per user request */}
+                <button
+                  onClick={() => setActiveTab('bookmarks')}
+                  className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'bookmarks' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
+                >
+                  <Icon name="bookmark" size={12} /> Marks
+                </button>
+                <button
+                  onClick={() => setActiveTab('annotations')}
+                  className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'annotations' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
+                >
+                  <Icon name="edit" size={12} /> Notes
+                </button>
                 <button
                   onClick={() => setShowRightPanel(false)}
                   className="px-2 py-2 text-navy-400 hover:text-navy-700"
