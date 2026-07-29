@@ -1861,7 +1861,6 @@ export default function EnhancedFileViewer({
             {(isPDF || isWord) && (
               <select value={displayMode} onChange={(e) => setDisplayMode(e.target.value)} className="h-9 px-2 rounded-md bg-gray-100 border border-navy-100 text-xs shrink-0">
                 <option value="single">Single Page</option>
-                <option value="continuous">Continuous</option>
                 {isWord && <option value="multi">Multi Page</option>}
               </select>
             )}
@@ -1931,6 +1930,18 @@ export default function EnhancedFileViewer({
                 <Icon name="version" size={14} /> Versions {versionCount > 0 && `(${versionCount})`}
               </button>
             )}
+
+            {/* Save */}
+            <button onClick={() => {
+              if (item?.id) {
+                // Since this is a viewer, Save triggers an upload of the current version if we have edited it.
+                // We'll call onSave if it exists, or just show a message.
+                if (onSave) onSave(item.id);
+                else alert('Save functionality is handled via Power Tools for modified PDFs.');
+              }
+            }} className="pdf-toolbar-btn font-semibold text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100">
+              <Icon name="save" size={14} /> Save
+            </button>
 
             {/* Download */}
             <button onClick={() => onDownload?.(item.id)} className="pdf-toolbar-btn">
@@ -2791,18 +2802,7 @@ export default function EnhancedFileViewer({
                 >
                   <Icon name="info" size={12} /> Info
                 </button>
-                <button
-                  onClick={() => setActiveTab('bookmarks')}
-                  className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'bookmarks' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
-                >
-                  <Icon name="bookmark" size={12} /> Marks
-                </button>
-                <button
-                  onClick={() => setActiveTab('annotations')}
-                  className={`flex-1 px-3 py-2 font-medium flex items-center justify-center gap-1 ${activeTab === 'annotations' ? 'bg-navy-50 text-navy-900 border-b-2 border-navy-900' : 'text-navy-500 hover:bg-navy-50'}`}
-                >
-                  <Icon name="palette" size={12} /> Notes
-                </button>
+                {/* Bookmarks and Annotations tabs have been removed as per user request */}
                 <button
                   onClick={() => setShowRightPanel(false)}
                   className="px-2 py-2 text-navy-400 hover:text-navy-700"
