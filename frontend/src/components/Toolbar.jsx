@@ -67,7 +67,7 @@ export default function Toolbar({
   const hasActiveFilters = filterCategory || filterStatus || filterSensitivity || filterFileType;
 
   return (
-    <div className={`${inline ? 'py-0 px-0 min-w-max whitespace-nowrap' : embedded ? 'py-2 px-0' : 'bg-white py-2 px-4 border-b border-navy-100'} flex items-center gap-3 relative`}>
+    <div className={`${inline ? 'py-0 px-0 min-w-max whitespace-nowrap' : embedded ? 'py-1 px-0' : 'bg-white py-1 px-4 border-b border-navy-100'} flex items-center gap-3 relative h-10`}>
       {/* Back/Forward Navigation */}
       <div className="flex gap-0.5">
         <button

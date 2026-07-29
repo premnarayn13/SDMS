@@ -1486,7 +1486,7 @@ function AppContent({ user, onSettingsClick, onLogout }) {
             )}
 
             {/* Section Title */}
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <h2 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
               {sectionTitle}
             </h2>
 
