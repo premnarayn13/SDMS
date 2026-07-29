@@ -89,3 +89,6 @@ Get insights into your document storage usage, file types, and history directly 
 
 ### Realtime Status
 Docky utilizes a WebSocket connection to stream live status updates of long-running autonomous actions straight to the UI.
+
+---
+*This README was updated to reflect the latest SDMS Agent features.*
