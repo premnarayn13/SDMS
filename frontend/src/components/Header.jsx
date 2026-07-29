@@ -91,28 +91,24 @@ export default function Header({
         </button>
 
         {/* Share */}
-        {selectedItemsCount > 0 && (
-          <button
-            onClick={onShareClick}
-            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 whitespace-nowrap"
-            title="Share"
-          >
-            <Icon name="users" size={13} />
-            <span>Share</span>
-          </button>
-        )}
+        <button
+          onClick={onShareClick}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 whitespace-nowrap"
+          title="Share"
+        >
+          <Icon name="users" size={13} />
+          <span>Share</span>
+        </button>
 
         {/* Move To */}
-        {selectedItemsCount > 0 && (
-          <button
-            onClick={onMoveClick}
-            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap"
-            title="Move To"
-          >
-            <Icon name="folder" size={13} />
-            <span>Move To</span>
-          </button>
-        )}
+        <button
+          onClick={onMoveClick}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap"
+          title="Move To"
+        >
+          <Icon name="folder" size={13} />
+          <span>Move To</span>
+        </button>
 
         {/* Bundle */}
         {selectedItemsCount > 1 && (
