@@ -83,3 +83,6 @@ SDMS seamlessly falls back to the native browser PDF viewer for optimal performa
 
 ### Interactive Voice Mode
 Docky supports continuous voice listening and Text-to-Speech (TTS) for a fully hands-free document management experience.
+
+### Document Analytics
+Get insights into your document storage usage, file types, and history directly from the AI agent or dashboard.
