@@ -718,19 +718,34 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
         if (operation !== 'convert') {
           const pageNumbers = parsePageNumbers(pageNumbersInput);
 
+          const hexToRgb = (hex) => {
+            if (!hex) return { r: 1, g: 1, b: 1 };
+            let c = hex.replace('#', '');
+            // handle basic color names quickly
+            const names = { red: 'FF0000', blue: '0000FF', green: '00FF00', black: '000000', white: 'FFFFFF', yellow: 'FFFF00' };
+            if (names[c.toLowerCase()]) c = names[c.toLowerCase()];
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            if (c.length !== 6) return { r: 1, g: 1, b: 1 };
+            return {
+              r: parseInt(c.substring(0, 2), 16) / 255,
+              g: parseInt(c.substring(2, 4), 16) / 255,
+              b: parseInt(c.substring(4, 6), 16) / 255
+            };
+          };
+
           if (operation === 'add_watermark') {
             if (!actions.addWatermark) return '❌ Add watermark is not available.';
             const text = data.watermark_text || 'WATERMARK';
-            const color = data.color || '#FF0000';
-            await actions.addWatermark(file.id, { text, color, opacity: 0.5 });
+            const colorObj = hexToRgb(data.color || '#FF0000');
+            await actions.addWatermark(file.id, { text, color: colorObj, opacity: 0.5 });
             return `✅ Added watermark "${text}".`;
           }
 
           if (operation === 'add_background') {
             if (!actions.addPageBackground) return '❌ Add background is not available.';
-            const color = data.color || '#FFFFFF';
-            await actions.addPageBackground(file.id, { color });
-            return `✅ Added background color ${color}.`;
+            const colorObj = hexToRgb(data.color || '#FFFFFF');
+            await actions.addPageBackground(file.id, { type: 'color', value: colorObj });
+            return `✅ Added background color.`;
           }
 
           if (operation === 'add_page_numbers') {
