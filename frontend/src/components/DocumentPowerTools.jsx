@@ -106,6 +106,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
   const [insertSourceFile, setInsertSourceFile] = useState(null);
   const [insertPosition, setInsertPosition] = useState('end');
   const [insertAtPage, setInsertAtPage] = useState(1);
+  const [mergeFilesList, setMergeFilesList] = useState([]);
   const [duplicatePagesInput, setDuplicatePagesInput] = useState('');
   const [duplicateCopies, setDuplicateCopies] = useState(1);
   const [rotatePagesInput, setRotatePagesInput] = useState('');
@@ -879,6 +880,26 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     }, 'PDF metadata updated and saved!');
   };
 
+  const handleMergeMultiplePDFs = async () => {
+    if (mergeFilesList.length === 0) {
+      showMessage('error', 'Select at least one PDF to merge with this document');
+      return;
+    }
+    executeAction(async () => {
+      const currentUrl = await getItemUrl();
+      const urlsToMerge = [currentUrl, ...mergeFilesList.map(f => URL.createObjectURL(f))];
+      const mergedBytes = await pdfTools.mergePDFs(urlsToMerge);
+      
+      for (let i = 1; i < urlsToMerge.length; i++) {
+          URL.revokeObjectURL(urlsToMerge[i]);
+      }
+
+      const outputName = `${getPdfBaseName()}_merged_${getTimestampToken()}.pdf`;
+      await saveConvertedToStorage(mergedBytes, outputName, 'application/pdf');
+      setMergeFilesList([]);
+    }, 'PDFs merged successfully!');
+  };
+
   // 9. Split PDF
   const handleSplitPDF = async () => {
     const pageCount = Number(pdfInfo?.pageCount || 0);
@@ -1538,6 +1559,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
         <div className="grid grid-cols-3 gap-2">
           <ToolButton icon="compress" label="Compress" onClick={handleCompressPDF} small direct />
           <ToolButton icon="edit" label="Metadata" onClick={() => setActiveSection('metadata')} small />
+          <ToolButton icon="merge" label="Merge" onClick={() => setActiveSection('merge')} small />
           <ToolButton icon="split" label="Split" onClick={() => setActiveSection('split')} small />
         </div>
       </ToolSection>
@@ -2274,6 +2296,37 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     </Section>
   );
 
+  const renderMergeSection = () => (
+    <Section title="Merge PDFs" icon="merge" onBack={() => setActiveSection('main')}>
+      <div className="space-y-3">
+        <p className="text-xs text-navy-500 mb-2">Select PDFs to append to the current document</p>
+        <input
+          type="file"
+          accept=".pdf,application/pdf"
+          multiple
+          onChange={(e) => {
+            if (e.target.files) {
+              setMergeFilesList(Array.from(e.target.files));
+            }
+          }}
+          className="input w-full text-sm mb-2"
+        />
+        {mergeFilesList.length > 0 && (
+          <div className="text-xs text-navy-600 mb-2">
+            Selected {mergeFilesList.length} file(s) to merge.
+          </div>
+        )}
+        <button 
+          onClick={handleMergeMultiplePDFs} 
+          className="btn-primary w-full text-sm"
+          disabled={mergeFilesList.length === 0}
+        >
+          Merge and Save
+        </button>
+      </div>
+    </Section>
+  );
+
   const renderSplitSection = () => (
     <Section title="Split PDF" icon="split" onBack={() => setActiveSection('main')}>
       <div className="space-y-3">
@@ -2651,6 +2704,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
         case 'background': return renderBackgroundSection();
         case 'pages': return renderPagesSection();
         case 'metadata': return renderMetadataSection();
+        case 'merge': return renderMergeSection();
         case 'split': return renderSplitSection();
         case 'reorder': return renderReorderSection();
         case 'security': return renderSecuritySection();
