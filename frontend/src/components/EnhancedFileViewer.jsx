@@ -2000,6 +2000,7 @@ export default function EnhancedFileViewer({
               </button>
             )}
           </div>
+        )}
 
         {/* Annotation Tools - ONLY for non-PDFs since PDF canvas doesn't support them well */}
         {!readMode && !isPDF && showAnnotationToolbar && (
