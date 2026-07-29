@@ -71,40 +71,39 @@ export default function Header({
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 overflow-visible">
       <div className="h-14 px-4 flex items-center gap-3 overflow-visible relative z-50">
-      {/* Search Box */}
-      <div className="flex-1 min-w-[140px] max-w-xs sm:max-w-sm relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-          <Icon name="search" size={16} />
-        </span>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search files and folders..."
-          className="input-search"
-        />
-      </div>
+      {/* Empty space where search box used to be to keep flex layout balanced if needed, but flex-1 on actions is better */}
+      <div className="flex-1 min-w-[10px]"></div>
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 flex-shrink-0 overflow-x-auto py-1 max-w-full">
-        {/* Power Tools - Primary action */}
+        {/* Ask AI - Static for now */}
         <button
-          onClick={onPDFToolsClick}
-          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all duration-200 whitespace-nowrap"
-          title="Document Power Tools"
+          onClick={() => {}}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-all duration-200 whitespace-nowrap"
+          title="Ask AI"
         >
           <Icon name="zap" size={13} />
-          <span>Tools</span>
+          <span>Ask AI</span>
         </button>
-        
-        {/* Storage Manager - Navigate to page */}
+
+        {/* Share */}
         <button
-          onClick={handleStorageClick}
-          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap"
-          title="Storage Analytics & Management"
+          onClick={() => {}}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 whitespace-nowrap"
+          title="Share"
         >
-          <Icon name="database" size={13} />
-          <span>Storage</span>
+          <Icon name="users" size={13} />
+          <span>Share</span>
+        </button>
+
+        {/* Bundle */}
+        <button
+          onClick={() => {}}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 whitespace-nowrap"
+          title="Bundle"
+        >
+          <Icon name="folder" size={13} />
+          <span>Bundle</span>
         </button>
 
         {/* Convert - Export/Convert access */}
@@ -256,7 +255,13 @@ export default function Header({
       {toolbarProps && (
         <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2 overflow-visible">
           <div className="relative w-full overflow-visible">
-            <Toolbar {...toolbarProps} embedded />
+            <Toolbar 
+              {...toolbarProps} 
+              searchQuery={searchQuery}
+              onSearchChange={onSearchChange}
+              onPDFToolsClick={onPDFToolsClick}
+              embedded 
+            />
           </div>
         </div>
       )}
