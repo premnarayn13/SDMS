@@ -1782,6 +1782,20 @@ if (String(itemId).startsWith("mega:")) {
       }
     },
 
+    addPDFPageNumbers: async (itemId, config) => {
+      try {
+        const { addPageNumbers } = await import('../utils/pdfPowerTools');
+        const { item, dataUrl: sourceUrl } = await ensureItemDataUrl(itemId);
+        
+        const numberedBytes = await addPageNumbers(sourceUrl, config);
+        const newFile = createDerivedPdfCopy(item, numberedBytes, '_numbered', 'Added page numbers to PDF');
+        return newFile.dataUrl;
+      } catch (err) {
+        console.error('Add page numbers error:', err);
+        throw err;
+      }
+    },
+
     // 7. Add/Remove Pages
     addPDFPages: async (itemId, config) => {
       try {

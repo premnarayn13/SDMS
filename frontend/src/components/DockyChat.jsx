@@ -715,8 +715,46 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
         return new File([blob], `${fileId}.pdf`, { type: blob.type || 'application/pdf' });
       };
 
-      if (operation !== 'convert') {
-        const pageNumbers = parsePageNumbers(pageNumbersInput);
+        if (operation !== 'convert') {
+          const pageNumbers = parsePageNumbers(pageNumbersInput);
+
+          if (operation === 'add_watermark') {
+            if (!actions.addWatermark) return '❌ Add watermark is not available.';
+            const text = data.watermark_text || 'WATERMARK';
+            const color = data.color || '#FF0000';
+            await actions.addWatermark(file.id, { text, color, opacity: 0.5 });
+            return `✅ Added watermark "${text}".`;
+          }
+
+          if (operation === 'add_background') {
+            if (!actions.addPageBackground) return '❌ Add background is not available.';
+            const color = data.color || '#FFFFFF';
+            await actions.addPageBackground(file.id, { color });
+            return `✅ Added background color ${color}.`;
+          }
+
+          if (operation === 'add_page_numbers') {
+            if (!actions.addPDFPageNumbers) return '❌ Add page numbers is not available.';
+            const color = data.color || '#000000';
+            await actions.addPDFPageNumbers(file.id, { color, position: 'bottom-center' });
+            return `✅ Added page numbers.`;
+          }
+
+          if (operation === 'password_protect') {
+            if (!actions.passwordProtectPDF) return '❌ Password protect is not available.';
+            const password = data.password;
+            if (!password) return '❌ Password is required to protect the PDF.';
+            await actions.passwordProtectPDF(file.id, { userPassword: password });
+            return `✅ Password protected the PDF.`;
+          }
+
+          if (operation === 'remove_password') {
+            if (!actions.removePasswordPDF) return '❌ Remove password is not available.';
+            const password = data.password;
+            if (!password) return '❌ Current password is required to unlock the PDF.';
+            await actions.removePasswordPDF(file.id, password);
+            return `✅ Removed password from the PDF.`;
+          }
 
         if (operation === 'add_pages') {
           if (!actions.addPDFPages) return '❌ Add pages is not available.';

@@ -406,7 +406,12 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                                 "merge_pdfs",
                                 "extract_tables",
                                 "extract_fonts",
-                                "transform_image"
+                                "transform_image",
+                                "add_watermark",
+                                "add_background",
+                                "add_page_numbers",
+                                "password_protect",
+                                "remove_password"
                             ],
                             "description": "Power tool operation type"
                         },
@@ -444,6 +449,18 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                         "output_name": {
                             "type": "string",
                             "description": "Optional output filename for merge or export"
+                        },
+                        "watermark_text": {
+                            "type": "string",
+                            "description": "Text to use for watermark operations"
+                        },
+                        "color": {
+                            "type": "string",
+                            "description": "Hex color code for background or watermark (e.g., #FF0000)"
+                        },
+                        "password": {
+                            "type": "string",
+                            "description": "Password used for encrypting or decrypting PDF"
                         },
                         "save_to_storage": {
                             "type": "boolean",
