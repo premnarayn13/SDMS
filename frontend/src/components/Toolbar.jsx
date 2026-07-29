@@ -158,7 +158,7 @@ export default function Toolbar({
 
       {/* Search Box and Tools */}
       {onSearchChange && (
-        <div className="flex-1 flex items-center gap-2 min-w-[120px] max-w-[280px] ml-2">
+        <div className="flex-1 flex items-center gap-2 min-w-[200px] max-w-full ml-4 mr-2">
           <div className="relative flex-1">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-navy-400">
               <Icon name="search" size={14} />
