@@ -31,6 +31,10 @@ export default function Header({
   onBackupRestoreClick,
   onSettingsClick,
   onLogout,
+  onShareClick,
+  onMoveClick,
+  onBundleClick,
+  selectedItemsCount = 0,
   user,
   toolbarProps
 }) {
@@ -80,30 +84,56 @@ export default function Header({
         <button
           onClick={() => {}}
           className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-all duration-200 whitespace-nowrap"
-          title="Ask AI"
+          title="Ask Ai"
         >
           <Icon name="zap" size={13} />
-          <span>Ask AI</span>
+          <span>Ask Ai✨</span>
         </button>
 
         {/* Share */}
-        <button
-          onClick={() => {}}
-          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 whitespace-nowrap"
-          title="Share"
-        >
-          <Icon name="users" size={13} />
-          <span>Share</span>
-        </button>
+        {selectedItemsCount > 0 && (
+          <button
+            onClick={onShareClick}
+            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 whitespace-nowrap"
+            title="Share"
+          >
+            <Icon name="users" size={13} />
+            <span>Share</span>
+          </button>
+        )}
+
+        {/* Move To */}
+        {selectedItemsCount > 0 && (
+          <button
+            onClick={onMoveClick}
+            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap"
+            title="Move To"
+          >
+            <Icon name="folder" size={13} />
+            <span>Move To</span>
+          </button>
+        )}
 
         {/* Bundle */}
+        {selectedItemsCount > 1 && (
+          <button
+            onClick={onBundleClick}
+            className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 whitespace-nowrap"
+            title="Bundle"
+          >
+            <Icon name="folder" size={13} />
+            <span>Bundle</span>
+          </button>
+        )}
+
+        {/* Power Tools */}
         <button
-          onClick={() => {}}
-          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-all duration-200 whitespace-nowrap"
-          title="Bundle"
+          onClick={onPDFToolsClick}
+          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all duration-200 whitespace-nowrap"
+          title="Document Power Tools"
         >
-          <Icon name="folder" size={13} />
-          <span>Bundle</span>
+          <Icon name="zap" size={13} />
+          <span>Tools</span>
         </button>
 
         {/* Convert - Export/Convert access */}

@@ -1347,6 +1347,26 @@ function AppContent({ user, onSettingsClick, onLogout }) {
             }
             handleMoveToTrash();
           }}
+          onShareClick={() => {
+            if (selectedItems.length > 0) setShowShareModal(true);
+            else showToast('Select an item to share', 'warning');
+          }}
+          onMoveClick={() => {
+            if (selectedItems.length > 0) setShowMoveModal(true);
+            else showToast('Select an item to move', 'warning');
+          }}
+          onBundleClick={handleBundleUp}
+          selectedItemsCount={selectedItems.length}
+          onPDFToolsClick={() => {
+            const target = getPowerToolsTarget();
+            if (target) {
+              setPdfToolsItem(target);
+              setPdfToolsSection('general');
+              setShowPDFTools(true);
+            } else {
+              showToast('Please select a file to use Power Tools', 'warning');
+            }
+          }}
           onStorageManagerClick={() => setShowStorageManager(true)}
           onBackupRestoreClick={() => setShowBackupRestore(true)}
           onSettingsClick={onSettingsClick}
