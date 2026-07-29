@@ -77,3 +77,6 @@ Contributions are welcome! Please ensure environment keys and credentials remain
 
 ### AI PDF Power Tools
 Docky can now natively execute all of the PDF power tools directly via natural language commands (merging, splitting, watermarking, background colors, page numbering, and password protection).
+
+### Native PDF Viewer
+SDMS seamlessly falls back to the native browser PDF viewer for optimal performance and rendering of complex PDF documents.
