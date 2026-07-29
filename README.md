@@ -74,3 +74,6 @@ Open your browser at: `http://localhost:3000`
 ## 🛡️ License & Contributing
 
 Contributions are welcome! Please ensure environment keys and credentials remain out of source control (`.env`).
+
+### AI PDF Power Tools
+Docky can now natively execute all of the PDF power tools directly via natural language commands (merging, splitting, watermarking, background colors, page numbering, and password protection).
