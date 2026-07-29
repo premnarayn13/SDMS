@@ -70,7 +70,7 @@ const getFileCategory = (item) => {
 };
 
 export default function DocumentPowerTools({ item, onClose, initialSection = 'main', inline = false }) {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
   const fileCategory = getFileCategory(item);
   const [activeSection, setActiveSection] = useState(initialSection || 'main');
   const [loading, setLoading] = useState(false);

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getIcon, formatSize, formatDate, Icons } from '../utils/helpers';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
 import { renderAsync as renderDocxAsync } from 'docx-preview';
 import {
@@ -48,13 +49,9 @@ const downloadBlobForViewer = async (itemId) => {
 
   return await documentOpsApi.downloadDocument(itemId);
 };
-// Configure PDF.js worker - for v5.x, use the local worker from node_modules
-// The CDN doesn't have v5.x workers yet, so we skip the worker and use the main thread
-// This is a fallback approach that works but may be slower for large PDFs
-pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-// Alternative: Import the worker locally if needed
-// import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs';
-// pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 // PDFLoader Component - Dynamically loads PDF from backend
 const PDFLoader = ({ itemId, fileName, onLoad, onAuthFailure }) => {
