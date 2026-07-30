@@ -30,17 +30,23 @@ class AuthMiddleware:
     
     @staticmethod
     async def get_current_user(
+        request: Request,
         credentials: HTTPAuthorizationCredentials = Depends(security)
     ) -> dict:
         """Get current authenticated user from JWT token"""
-        if not credentials:
+        token = None
+        if credentials:
+            token = credentials.credentials
+        elif request.query_params.get("token"):
+            token = request.query_params.get("token")
+            
+        if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
                 headers={"WWW-Authenticate": "Bearer"}
             )
         
-        token = credentials.credentials
         payload = jwt_handler.decode_token(token)
         
         if not payload:
@@ -120,14 +126,21 @@ class AuthMiddleware:
     
     @staticmethod
     async def get_current_user_optional(
+        request: Request,
         credentials: HTTPAuthorizationCredentials = Depends(security)
     ) -> Optional[dict]:
         """Get current user if authenticated, None otherwise"""
-        if not credentials:
+        token = None
+        if credentials:
+            token = credentials.credentials
+        elif request.query_params.get("token"):
+            token = request.query_params.get("token")
+            
+        if not token:
             return None
         
         try:
-            return await AuthMiddleware.get_current_user(credentials)
+            return await AuthMiddleware.get_current_user(request, credentials)
         except HTTPException:
             return None
     
@@ -146,24 +159,27 @@ class AuthMiddleware:
 
 # Dependency functions
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """Dependency for getting current user"""
-    return await AuthMiddleware.get_current_user(credentials)
+    return await AuthMiddleware.get_current_user(request, credentials)
 
 
 async def get_current_user_optional(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> Optional[dict]:
     """Dependency for optionally getting current user"""
-    return await AuthMiddleware.get_current_user_optional(credentials)
+    return await AuthMiddleware.get_current_user_optional(request, credentials)
 
 
 async def get_verified_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """Dependency for getting verified user"""
-    user = await AuthMiddleware.get_current_user(credentials)
+    user = await AuthMiddleware.get_current_user(request, credentials)
     return await AuthMiddleware.verify_email_verified(user)
 
 

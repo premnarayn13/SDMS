@@ -64,6 +64,12 @@ async def upload_document(
 ):
     """Upload a document to Google Drive"""
     try:
+        if folder_id in ("null", "undefined", ""):
+            folder_id = None
+        if drive_id in ("null", "undefined", ""):
+            drive_id = None
+        if tags in ("null", "undefined"):
+            tags = None
         content = await file.read()
         
         tag_list = []

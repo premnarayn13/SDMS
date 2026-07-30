@@ -296,11 +296,14 @@ class DocumentsService:
     
     async def get_document(self, user_id: str, document_id: str) -> dict:
         """Get single document"""
-        result = self.db.table("file_metadata").select("*").eq(
-            "id", document_id
-        ).eq(
-            "user_id", user_id
-        ).execute()
+        try:
+            result = self.db.table("file_metadata").select("*").eq(
+                "id", document_id
+            ).eq(
+                "user_id", user_id
+            ).execute()
+        except Exception:
+            raise ValueError("Document not found")
         
         if not result.data:
             raise ValueError("Document not found")
@@ -308,9 +311,12 @@ class DocumentsService:
         doc = result.data[0]
         
         # Update last accessed
-        self.db.table("file_metadata").update({
-            "last_accessed_at": datetime.utcnow().isoformat()
-        }).eq("id", document_id).execute()
+        try:
+            self.db.table("file_metadata").update({
+                "last_accessed_at": datetime.utcnow().isoformat()
+            }).eq("id", document_id).execute()
+        except Exception:
+            pass
         
         # Add UI-compatible fields
         doc["type"] = "file"
