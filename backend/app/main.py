@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 import base64
@@ -18,6 +18,7 @@ from .models import (
     ShareRequest, TagRequest, MoveRequest, RenameRequest,
     User, StorageInfo
 )
+from .middleware.auth import get_current_user
 
 app = FastAPI(title="DocMatrix API", version="1.0.0")
 
