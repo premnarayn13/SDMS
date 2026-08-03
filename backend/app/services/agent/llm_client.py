@@ -42,7 +42,8 @@ class LLMClient:
         else:
             parsed = [
                 "llama-3.1-8b-instant",
-                "llama3-8b-8192",
+                "llama-3.1-70b-versatile",
+                "gemma2-9b-it",
             ]
 
         return [model for model in parsed if model and model != settings.AGENT_LLM_MODEL]
@@ -54,7 +55,19 @@ class LLMClient:
             or "rate limit" in text
             or "rate_limit_exceeded" in text
             or "status code: 429" in text
-            or "429" in text and "tokens per day" in text
+            or ("429" in text and "tokens per day" in text)
+        )
+
+    def _is_model_unavailable_error(self, error: Exception) -> bool:
+        """Detect decommissioned / unavailable model errors that should trigger fallback"""
+        text = str(error).lower()
+        return (
+            "decommissioned" in text
+            or "no longer supported" in text
+            or "model_decommissioned" in text
+            or "invalid_request_error" in text
+            or "model not found" in text
+            or "does not exist" in text
         )
 
     def _extract_response(self, response: Any) -> Dict[str, Any]:
@@ -150,9 +163,10 @@ class LLMClient:
                 return result
             except Exception as e:
                 last_error = e
-                if idx < len(models_to_try) - 1 and self._is_rate_limit_error(e):
+                should_try_next = idx < len(models_to_try) - 1
+                if should_try_next and (self._is_rate_limit_error(e) or self._is_model_unavailable_error(e)):
                     logger.warning(
-                        "Primary model rate-limited (%s). Retrying with fallback model: %s",
+                        "Model unavailable/rate-limited (%s). Retrying with fallback: %s",
                         model,
                         models_to_try[idx + 1],
                     )
@@ -191,9 +205,10 @@ class LLMClient:
                 return result
             except Exception as e:
                 last_error = e
-                if idx < len(models_to_try) - 1 and self._is_rate_limit_error(e):
+                should_try_next = idx < len(models_to_try) - 1
+                if should_try_next and (self._is_rate_limit_error(e) or self._is_model_unavailable_error(e)):
                     logger.warning(
-                        "Async model rate-limited (%s). Retrying with fallback model: %s",
+                        "Async model unavailable/rate-limited (%s). Retrying with fallback: %s",
                         model,
                         models_to_try[idx + 1],
                     )
