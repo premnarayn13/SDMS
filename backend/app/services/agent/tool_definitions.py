@@ -411,7 +411,19 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                                 "add_background",
                                 "add_page_numbers",
                                 "password_protect",
-                                "remove_password"
+                                "remove_password",
+                                "remove_pages",
+                                "reverse_pages",
+                                "pdf_to_images",
+                                "images_to_pdf",
+                                "doc_to_pdf",
+                                "txt_to_pdf",
+                                "pdf_to_ppt",
+                                "update_metadata",
+                                "remove_blank_pages",
+                                "fill_form",
+                                "add_signature",
+                                "add_annotations"
                             ],
                             "description": "Power tool operation type"
                         },
@@ -1200,6 +1212,45 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
         {
             "type": "function",
             "function": {
+                "name": "compress_image",
+                "description": "Compress/optimize an image file (JPEG, PNG, WEBP) and save the compressed version.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_id": {
+                            "type": "string",
+                            "description": "ID or filename of the image file"
+                        },
+                        "quality": {
+                            "type": "integer",
+                            "description": "Compression quality (1-100, default 75)",
+                            "default": 75
+                        }
+                    },
+                    "required": ["file_id"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "compress_file",
+                "description": "Universal file compressor: compresses a PDF, image, or any other file. Use this when the user says 'compress X' without specifying the type.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_id": {
+                            "type": "string",
+                            "description": "ID or filename of the file to compress"
+                        }
+                    },
+                    "required": ["file_id"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "rotate_pdf_pages",
                 "description": "Rotate specific pages in a PDF (90, 180, or 270 degrees).",
                 "parameters": {
@@ -1369,6 +1420,71 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                         }
                     },
                     "required": ["file_id", "watermark_text"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "encrypt_docx",
+                "description": "Password protect or encrypt a Word document (.docx) file with a password.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_id": {
+                            "type": "string",
+                            "description": "ID or filename of the Word document (.docx)"
+                        },
+                        "password": {
+                            "type": "string",
+                            "description": "Password to set on the file"
+                        }
+                    },
+                    "required": ["file_id", "password"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "decrypt_docx",
+                "description": "Remove password protection or decrypt an encrypted Word document (.docx) using its password.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_id": {
+                            "type": "string",
+                            "description": "ID or filename of the encrypted Word document (.docx)"
+                        },
+                        "password": {
+                            "type": "string",
+                            "description": "Password to unlock the document"
+                        }
+                    },
+                    "required": ["file_id", "password"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "bundle_files",
+                "description": "Bundle/zip multiple files into a single ZIP archive file.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_ids": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of file IDs or filenames to bundle together"
+                        },
+                        "bundle_name": {
+                            "type": "string",
+                            "description": "Name of the resulting zip file (e.g. 'archive.zip')",
+                            "default": "bundle.zip"
+                        }
+                    },
+                    "required": ["file_ids"]
                 }
             }
         }
