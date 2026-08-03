@@ -81,7 +81,7 @@ class ActionExecutor:
             else:
                 arguments = {}
             
-            logger.info(f"Executing tool: {function_name} with args: {list(arguments.keys())}")
+            logger.info(f"Executing tool: {function_name} with args: {arguments}")
             
             # Check safety before execution
             is_safe, blocked_reason = self.safety_guard.check_operation(function_name, arguments)
