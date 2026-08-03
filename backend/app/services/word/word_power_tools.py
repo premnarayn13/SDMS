@@ -27,8 +27,54 @@ class WordPowerToolsExecutor:
             return None, str(e)
 
     async def convert_to_pdf(self, content: bytes) -> Tuple[Optional[bytes], Optional[str]]:
-        # Placeholder: conversion requires external tools (libreoffice, unoconv)
-        return None, "Conversion to PDF requires external converter (not implemented)."
+        try:
+            import io
+            from docx import Document
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            
+            doc = Document(io.BytesIO(content))
+            pdf_buffer = io.BytesIO()
+            
+            pdf = SimpleDocTemplate(
+                pdf_buffer,
+                pagesize=letter,
+                rightMargin=54,
+                leftMargin=54,
+                topMargin=54,
+                bottomMargin=54
+            )
+            
+            styles = getSampleStyleSheet()
+            story = []
+            
+            for para in doc.paragraphs:
+                text = para.text.strip()
+                if not text:
+                    story.append(Spacer(1, 10))
+                    continue
+                
+                # Simple style mapping
+                style = styles['Normal']
+                if para.style.name.startswith('Heading 1'):
+                    style = styles['Heading1']
+                elif para.style.name.startswith('Heading 2'):
+                    style = styles['Heading2']
+                elif para.style.name.startswith('Heading 3'):
+                    style = styles['Heading3']
+                elif para.style.name.startswith('Title'):
+                    style = styles['Title']
+                
+                # Build Paragraph
+                story.append(Paragraph(text, style))
+                story.append(Spacer(1, 6))
+                
+            pdf.build(story)
+            return pdf_buffer.getvalue(), None
+        except Exception as e:
+            logger.error("Word convert_to_pdf error: %s", e)
+            return None, str(e)
 
     async def merge_documents(self, contents: list[bytes]) -> Tuple[Optional[bytes], Optional[str]]:
         try:
