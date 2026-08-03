@@ -215,7 +215,7 @@ class GoogleDriveAPI:
         if parent_id:
             metadata["parents"] = [parent_id]
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             # Multipart upload
             response = await client.post(
                 f"{self.upload_url}/files",
@@ -239,7 +239,7 @@ class GoogleDriveAPI:
         mime_type: str
     ) -> dict:
         """Update file content"""
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             response = await client.patch(
                 f"{self.upload_url}/files/{file_id}",
                 params={"uploadType": "media", "fields": "id,name,mimeType,size,modifiedTime"},
