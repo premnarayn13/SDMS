@@ -11,6 +11,7 @@ import {
 import { getFileVersions, rollbackToVersion } from '../utils/versionControl';
 import { tokenUtils } from '../utils/authApi';
 import { Icons } from '../utils/helpers';
+import documentOpsApi from '../utils/documentApi';
 
 const FEATURES_38 = [
   'Layout-preserving render',
@@ -904,62 +905,17 @@ export default function WordPowerFeaturesPanel({
     }
 
     try {
-      let sourceBlob;
-      let sourceName;
-
-      if (sourceFile) {
-        sourceBlob = sourceFile;
-        sourceName = sourceFile.name || 'document.docx';
+      if (mode === 'encrypt') {
+        await documentOpsApi.encryptDocument(item.id, docPassword);
+        showMessage('success', 'DOCX password protection applied successfully!');
       } else {
-        const sourceUrl = await getItemUrl();
-        sourceBlob = await fetch(sourceUrl).then((res) => res.blob());
-        sourceName = item?.name || 'document.docx';
+        await documentOpsApi.decryptDocument(item.id, docPassword);
+        showMessage('success', 'DOCX password protection removed successfully!');
       }
-
-      const preparedFile = new File([sourceBlob], sourceName, {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
-
-      const token = tokenUtils.getAccessToken();
-      const formData = new FormData();
-      formData.append('file', preparedFile);
-      formData.append('password', docPassword);
-
-      const headers = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const response = await fetch(`/api/v1/documents/tools/docx/${mode}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        let message = `HTTP ${response.status}`;
-        try {
-          const payload = await response.json();
-          message = payload?.detail || message;
-        } catch {
-          message = await response.text();
-        }
-        throw new Error(message || `DOCX ${mode} failed`);
-      }
-
-      const outputBlob = await response.blob();
-      const outputName = mode === 'encrypt'
-        ? sourceName.replace(/\.(docx?|odt)$/i, '') + '_encrypted.docx'
-        : sourceName.replace(/\.(docx?|odt)$/i, '') + '_decrypted.docx';
-
-      await saveConvertedToStorage(
-        outputBlob,
-        outputName,
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      );
-
-      showMessage('success', `DOCX ${mode}ed successfully via backend crypto tool.`);
-    } catch (error) {
-      showMessage('error', error.message || `DOCX ${mode} failed`);
+      if (actions?.refreshItems) await actions.refreshItems();
+    } catch (err) {
+      console.error('Docx crypto error:', err);
+      showMessage('error', err.response?.data?.detail || err.message || `Failed to ${mode} DOCX.`);
     }
   };
 
