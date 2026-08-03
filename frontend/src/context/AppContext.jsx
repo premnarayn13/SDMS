@@ -1013,7 +1013,8 @@ if (String(itemId).startsWith("mega:")) {
           return newFile;
         } catch (error) {
           console.error('Cloud upload failed:', error);
-          throw new Error(`Cloud upload failed: ${error.message || 'Unknown error'}`);
+          const detail = error.response?.data?.detail || error.message || 'Unknown error';
+          throw new Error(`Cloud upload failed: ${detail}`);
         }
       }
       
