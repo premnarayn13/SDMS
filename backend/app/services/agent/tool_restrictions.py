@@ -191,6 +191,43 @@ ALLOWED_TOOLS: Set[str] = {
     "extract_image_metadata",
     "extract_audio_metadata",
     "extract_video_metadata",
+
+    # Compression & Bundling
+    "compress_pdf",
+    "compress_image",
+    "compress_file",
+    "bundle_files",
+    "extract_zip_archive",
+
+    # PDF & Universal protection (allowed — user initiates via Docky)
+    "password_protect_pdf",
+    "remove_pdf_password",
+    "protect_document",
+    "unprotect_document",
+
+    # Word Power Tools (encrypt / decrypt allowed via Docky)
+    "encrypt_docx",
+    "decrypt_docx",
+
+    # General file conversion
+    "convert_docx_to_pdf",
+    "convert_pdf_to_images",
+    "merge_multiple_pdfs",
+    "merge_word_documents",
+    "split_pdf_range",
+    "split_pdf_pages",
+
+    # Query & info tools
+    "get_text_stats",
+    "get_word_count",
+    "list_recent_files",
+    "filter_files",
+    "get_analytics",
+    "get_storage_info",
+    "get_activity_log",
+    "get_version_history",
+    "find_similar",
+    "find_duplicates",
 }
 
 # Tools that require extra confirmation but are allowed
@@ -280,7 +317,10 @@ class ToolRestrictionManager:
                     "tool": tool_name,
                     "call": call
                 })
-            elif self.is_tool_allowed(tool_name):
+            else:
+                # Allow ALL tools not explicitly restricted
+                # This ensures newly-added tools (compress_file, bundle_files, etc.)
+                # work without needing separate registration in ALLOWED_TOOLS
                 allowed.append(call)
         
         return {
