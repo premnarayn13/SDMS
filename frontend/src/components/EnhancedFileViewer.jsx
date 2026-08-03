@@ -335,11 +335,20 @@ export default function EnhancedFileViewer({
   const suspendHistoryRef = useRef(false);
   const activeRemoteUrlRef = useRef(null);
 
-  const resolvedPreviewUrl = item?.dataUrl || loadedPdfUrl || remoteDataUrl;
-  const resolvedTextContent = item?.content || remoteTextContent || editContent;
   const [excelSourceBlob, setExcelSourceBlob] = useState(null);
   const [excelLoading, setExcelLoading] = useState(false);
   const [excelLoadError, setExcelLoadError] = useState('');
+
+  // Password Unlock state
+  const [unlockedBlobUrl, setUnlockedBlobUrl] = useState(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState('');
+  const [showUnlockPassword, setShowUnlockPassword] = useState(false);
+  const [unlockError, setUnlockError] = useState('');
+  const [unlocking, setUnlocking] = useState(false);
+
+  const resolvedPreviewUrl = item?.dataUrl || unlockedBlobUrl || loadedPdfUrl || remoteDataUrl;
+  const resolvedTextContent = item?.content || remoteTextContent || editContent;
 
   const resolveDriveReconnect = useCallback(async (errorOrText) => {
     const detail = extractErrorText(errorOrText) || 'Google Drive access expired for this file.';
@@ -1570,6 +1579,129 @@ export default function EnhancedFileViewer({
     );
   };
 
+  const isEncryptedDocument = Boolean(item?.is_encrypted || item?.isEncrypted || item?.encryption_type);
+
+  const handleUnlockSubmit = async (e) => {
+    e?.preventDefault();
+    if (!unlockPassword || !item?.id) return;
+    setUnlocking(true);
+    setUnlockError('');
+
+    try {
+      const blob = await documentOpsApi.unlockDocument(item.id, unlockPassword);
+      const url = URL.createObjectURL(blob);
+      setUnlockedBlobUrl(url);
+      setIsUnlocked(true);
+      setRemoteDataUrl(url);
+    } catch (err) {
+      console.error('Unlock error:', err);
+      setUnlockError(err.response?.data?.detail || err.message || 'Incorrect password');
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  if (isEncryptedDocument && !isUnlocked) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4 animate-fade-in">
+        <div className="bg-slate-800/90 border border-slate-700/60 shadow-2xl rounded-2xl p-6 sm:p-8 max-w-md w-full text-white relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl shadow-inner">
+                🔒
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-100 leading-snug">Document Protected</h3>
+                <p className="text-xs text-slate-400">Password required to view contents</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white bg-slate-700/40 hover:bg-slate-700 p-2 rounded-lg transition-all"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-700/50 mb-6 space-y-1">
+            <div className="text-sm font-semibold text-slate-200 truncate">{item.name || item.display_name}</div>
+            <div className="text-xs text-slate-400 flex items-center gap-2">
+              <span>{item.fileType || item.type || 'Document'}</span>
+              <span>•</span>
+              <span>{item.size ? formatSize(item.size) : 'Encrypted'}</span>
+            </div>
+            {item.password_hint && (
+              <div className="mt-2 text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-lg p-2 flex items-center gap-1.5">
+                💡 <span className="font-medium">Hint:</span> {item.password_hint}
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handleUnlockSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                Enter Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showUnlockPassword ? 'text' : 'password'}
+                  value={unlockPassword}
+                  onChange={(e) => setUnlockPassword(e.target.value)}
+                  placeholder="Enter document password"
+                  className="w-full bg-slate-900/80 border border-slate-600 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-white rounded-xl px-4 py-3 text-sm pr-16 transition-all outline-none"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUnlockPassword(!showUnlockPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs px-2 py-1 rounded bg-slate-700/50"
+                >
+                  {showUnlockPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            {unlockError && (
+              <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-3 flex items-center gap-2">
+                <span>⚠️</span> {unlockError}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-slate-700/60 hover:bg-slate-700 text-slate-200 font-medium py-2.5 px-4 rounded-xl text-sm transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={unlocking || !unlockPassword}
+                className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {unlocking ? (
+                  <>
+                    <span className="animate-spin text-sm">🔄</span> Unlocking...
+                  </>
+                ) : (
+                  <>
+                    <span>🔓</span> Unlock Document
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 ${isFullscreen ? '' : 'p-4'}`}>
       <div className={`bg-white rounded-lg shadow-2xl flex flex-col relative overflow-hidden ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[95%] max-w-7xl h-full'}`}>
@@ -1916,16 +2048,12 @@ export default function EnhancedFileViewer({
               </button>
             )}
 
-            {/* Save */}
-            <button onClick={() => {
-              if (item?.id) {
-                // Since this is a viewer, Save triggers an upload of the current version if we have edited it.
-                // We'll call onSave if it exists, or just show a message.
-                if (onSave) onSave(item.id);
-                else alert('Save functionality is handled via Power Tools for modified PDFs.');
-              }
-            }} className="pdf-toolbar-btn font-semibold text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100">
-              <Icon name="save" size={14} /> Save
+            {/* Annotations Toggle */}
+            <button 
+              onClick={() => setShowAnnotationToolbar(!showAnnotationToolbar)} 
+              className={`pdf-toolbar-btn font-semibold ${showAnnotationToolbar ? 'text-blue-700 bg-blue-100 border-blue-300' : 'text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100'}`}
+            >
+              <Icon name="edit" size={14} /> Annotations
             </button>
 
             {/* Download */}
@@ -1986,8 +2114,8 @@ export default function EnhancedFileViewer({
           </div>
         )}
 
-        {/* Annotation Tools - ONLY for non-PDFs since PDF canvas doesn't support them well */}
-        {!readMode && !isPDF && showAnnotationToolbar && (
+        {/* Annotation Tools */}
+        {!readMode && showAnnotationToolbar && (
           <div className="pdf-annotation-toolbar">
             <span className="font-semibold text-navy-700 text-xs flex items-center gap-1">
               <Icon name="edit" size={12} /> Annotations:
