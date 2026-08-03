@@ -39,7 +39,7 @@ const createAuthApi = (baseUrl) => {
   const instance = axios.create({
     baseURL: baseUrl,
     withCredentials: true,
-    timeout: 20000,
+    timeout: 180000,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -246,6 +246,31 @@ export const documentOpsApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+
+  // Universal Encrypt Document
+  encryptDocument: async (id, password, passwordHint = null) => {
+    const response = await documentsApi.post(`/${id}/encrypt`, {
+      password,
+      password_hint: passwordHint,
+    });
+    return response.data;
+  },
+
+  // Universal Decrypt Document
+  decryptDocument: async (id, password) => {
+    const response = await documentsApi.post(`/${id}/decrypt`, {
+      password,
+    });
+    return response.data;
+  },
+
+  // Unlock Document for viewing/previewing
+  unlockDocument: async (id, password) => {
+    const response = await documentsApi.post(`/${id}/unlock`, {
+      password,
+    }, { responseType: 'blob' });
     return response.data;
   },
 };
