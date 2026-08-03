@@ -24,7 +24,7 @@ const PAUSE_ACTION_REGEX = /\b(pause|hold on|wait|stop this|stop action|abort|ca
 const INTERRUPT_ACTION_REGEX = /\b(stop|cancel|abort|pause|wait)\b/i;
 const CHANGE_PLAN_REGEX = /\b(change plan|change action|new plan|different action|do this instead)\b/i;
 
-export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
+export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify, onOpenShare }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -1065,7 +1065,8 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
         return `✅ Power tool conversion complete: ${sourceName} → ${outputName}`;
       } catch (error) {
         console.error('❌ Power tool conversion failed:', error);
-        return `❌ Power tool conversion failed: ${error.message}`;
+        const detail = error.response?.data?.detail || error.message || 'Unknown error';
+        return `❌ Power tool conversion failed: ${detail}`;
       }
     }
 
@@ -1573,22 +1574,85 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
           return `${emoji} Step ${idx + 1}: ${action.function_name} - ${status}`;
         }).join('\n');
         
-        // Execute frontend-only actions (avoid re-running backend mutations here)
+        let frontendResultsStr = '';
         const frontendOnlyFunctions = new Set(['open_file', 'download_file', 'get_analytics', 'run_power_tool']);
+        // Functions that need frontend dispatch even though backend ran them
+        const requiresFrontendFunctions = new Set(['share_file']);
+        // Functions that return data to display as text (query-type tools)
+        const queryFunctions = new Set([
+          'get_text_stats', 'search_files', 'list_files', 'list_folders',
+          'get_file_info', 'folder_tree', 'list_recent_files', 'get_storage_stats',
+          'extract_text', 'extract_entities', 'extract_keywords', 'detect_language',
+          'find_duplicates', 'find_similar_files', 'get_word_count'
+        ]);
+        let shouldRefreshData = false;
+        
         for (const action of response.actions_executed) {
-          if (action.success && action.data && frontendOnlyFunctions.has(action.function_name)) {
-            // Map backend function names to frontend actions
-            const frontendAction = mapBackendActionToFrontend(action, action.data);
-            if (frontendAction) {
-              const result = await executeAction(frontendAction);
-              console.log('🎯 Frontend action result:', result);
+          if (action.success && action.data) {
+            const data = action.data;
+
+            // Handle requires_frontend flag (e.g. share_file opens share modal)
+            if (data.requires_frontend && data.frontend_action) {
+              const fa = data.frontend_action;
+              if (fa.type === 'share') {
+                // Find the file in items and open its share card
+                const fileToShare = items.find(i => 
+                  String(i.id) === String(fa.file_id) || 
+                  i.name?.toLowerCase() === (fa.filename || '').toLowerCase()
+                );
+                if (fileToShare && onOpenShare) {
+                  onOpenShare(fileToShare);
+                } else if (fileToShare && actions.openShareModal) {
+                  actions.openShareModal(fileToShare);
+                } else if (fileToShare && actions.setSelectedFile) {
+                  actions.setSelectedFile(fileToShare);
+                  if (actions.setShowShareModal) actions.setShowShareModal(true);
+                }
+                frontendResultsStr += `\n📤 Opened share options for '${fa.filename || data.filename}'.`;
+              }
+              continue;
+            }
+
+            if (frontendOnlyFunctions.has(action.function_name)) {
+              // Map backend function names to frontend actions
+              const frontendAction = mapBackendActionToFrontend(action, data);
+              if (frontendAction) {
+                const result = await executeAction(frontendAction);
+                console.log('⚡ Frontend action result:', result);
+                if (result) frontendResultsStr += `\n${result}`;
+              }
+            } else if (queryFunctions.has(action.function_name) || data.stats || data.word_count !== undefined) {
+              // Query results - format them as readable text
+              const statsData = data.stats || data;
+              if (statsData.word_count !== undefined || data.word_count !== undefined) {
+                const wc = statsData.word_count ?? data.word_count ?? 0;
+                const cc = statsData.char_count ?? data.char_count ?? 0;
+                const sc = statsData.sentence_count ?? data.sentence_count ?? 0;
+                const pc = statsData.paragraph_count ?? data.paragraph_count ?? 0;
+                frontendResultsStr += `\n📊 **Text Statistics:**\n• Words: ${wc.toLocaleString()}\n• Characters: ${cc.toLocaleString()}\n• Sentences: ${sc}\n• Paragraphs: ${pc}`;
+              }
+              if (data.files && Array.isArray(data.files)) {
+                frontendResultsStr += `\n🔍 Found ${data.files.length} file(s): ${data.files.map(f => f.name || f.display_name).filter(Boolean).join(', ')}`;
+              }
+              shouldRefreshData = false; // query tools don't mutate
+            } else {
+              // Backend mutation functions (rename, move, delete, tag, etc)
+              shouldRefreshData = true;
             }
           }
         }
         
+        if (shouldRefreshData) {
+          console.log('🔄 Reloading data to reflect backend mutations...');
+          await actions.loadData();
+        }
+
         // Add action summary if multi-step
         if (response.actions_executed.length > 1) {
           responseMessage += '\n\n📋 Actions performed:\n' + actionSummary;
+        }
+        if (frontendResultsStr) {
+          responseMessage += '\n\n' + frontendResultsStr.trim();
         }
       }
       
@@ -1619,7 +1683,11 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
       if (response.actions_executed?.some(a => a.success && 
         ['rename_file', 'move_file', 'delete_file', 'add_tag', 'remove_tag', 'toggle_favorite', 'restore_file',
          'create_folder', 'rename_folder', 'move_folder', 'delete_folder', 'set_folder_color', 'duplicate_file',
-         'batch_move', 'batch_tag', 'batch_delete', 'share_file', 'remove_share', 'run_power_tool'].includes(a.function_name))) {
+         'batch_move', 'batch_tag', 'batch_delete', 'share_file', 'remove_share', 'run_power_tool',
+         'compress_file', 'compress_pdf', 'compress_image', 'bundle_files', 'extract_zip_archive', 'convert_docx_to_pdf', 
+         'convert_pdf_to_images', 'encrypt_docx', 'decrypt_docx', 'protect_document', 'unprotect_document', 'password_protect_pdf', 'remove_pdf_password',
+         'merge_word_documents', 'merge_multiple_pdfs', 'split_pdf_range', 'split_pdf_pages', 'rotate_pdf_pages',
+         'remove_pdf_pages', 'reorder_pdf_pages', 'duplicate_pdf_pages', 'add_pdf_watermark', 'add_docx_watermark'].includes(a.function_name))) {
         console.log('📁 Triggering items refresh...');
         if (actions.refreshItems) {
           await actions.refreshItems();
@@ -1681,7 +1749,8 @@ export default function DockyChat({ onOpenFile, onShowAnalytics, onNotify }) {
       'move_file': 'move',
       'download_file': 'download',
       'run_power_tool': 'power_tool',
-      'get_analytics': 'analytics'
+      'get_analytics': 'analytics',
+      'share_file': 'share'
     };
 
     const commandType = functionToCommandMap[action.function_name];
