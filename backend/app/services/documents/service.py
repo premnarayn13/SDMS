@@ -1000,6 +1000,117 @@ class DocumentsService:
         except Exception as e:
             logger.error(f"Failed to log activity: {e}")
 
+    async def encrypt_document(self, user_id: str, document_id: str, password: str, password_hint: str = None) -> dict:
+        """Encrypt document with password protection across any file format."""
+        doc = await self.get_document(user_id, document_id)
+        if not doc:
+            raise ValueError("Document not found")
+        if not password:
+            raise ValueError("Password is required")
+
+        content, orig_name, mime_type = await self.download_document(user_id, document_id)
+        if not content:
+            raise ValueError("Failed to download document content for encryption")
+
+        from app.utils.universal_security import encrypt_document_bytes, hash_password
+        encrypted_content, enc_type = encrypt_document_bytes(
+            content=content,
+            password=password,
+            filename=doc.get("display_name") or orig_name,
+            mime_type=mime_type
+        )
+
+        drive_api, resolved_drive_id = await self._resolve_drive_api_for_document(user_id, doc)
+        drive_file_id = doc.get("drive_file_id")
+
+        await drive_api.update_file(drive_file_id, content=encrypted_content, mime_type=mime_type or "application/octet-stream")
+
+        updates = {
+            "is_encrypted": True,
+            "encryption_type": enc_type,
+            "password_hash": hash_password(password),
+            "password_hint": password_hint or "",
+            "size_bytes": len(encrypted_content),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        try:
+            self.db.table("file_metadata").update(updates).eq("id", document_id).execute()
+        except Exception as update_err:
+            logger.warning(f"Failed to update file_metadata schema: {update_err}")
+
+        self._log_activity(user_id, "file", document_id, "encrypted", {"type": enc_type})
+        return await self.get_document(user_id, document_id)
+
+    async def decrypt_document(self, user_id: str, document_id: str, password: str) -> dict:
+        """Decrypt document and remove password protection."""
+        doc = await self.get_document(user_id, document_id)
+        if not doc:
+            raise ValueError("Document not found")
+        if not password:
+            raise ValueError("Password is required")
+
+        content, orig_name, mime_type = await self.download_document(user_id, document_id)
+        if not content:
+            raise ValueError("Failed to download document content for decryption")
+
+        from app.utils.universal_security import decrypt_document_bytes, verify_password
+        stored_hash = doc.get("password_hash")
+        if stored_hash and not verify_password(password, stored_hash):
+            raise ValueError("Incorrect password")
+
+        decrypted_content = decrypt_document_bytes(
+            content=content,
+            password=password,
+            filename=doc.get("display_name") or orig_name,
+            mime_type=mime_type,
+            encryption_type=doc.get("encryption_type")
+        )
+
+        drive_api, _ = await self._resolve_drive_api_for_document(user_id, doc)
+        drive_file_id = doc.get("drive_file_id")
+
+        await drive_api.update_file(drive_file_id, content=decrypted_content, mime_type=mime_type or "application/octet-stream")
+
+        updates = {
+            "is_encrypted": False,
+            "encryption_type": None,
+            "password_hash": None,
+            "password_hint": None,
+            "size_bytes": len(decrypted_content),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        try:
+            self.db.table("file_metadata").update(updates).eq("id", document_id).execute()
+        except Exception as update_err:
+            logger.warning(f"Failed to update file_metadata schema: {update_err}")
+
+        self._log_activity(user_id, "file", document_id, "decrypted", {})
+        return await self.get_document(user_id, document_id)
+
+    async def unlock_document(self, user_id: str, document_id: str, password: str) -> Tuple[bytes, str, str]:
+        """Unlock encrypted document in-memory for preview/viewing."""
+        doc = await self.get_document(user_id, document_id)
+        if not doc:
+            raise ValueError("Document not found")
+
+        content, orig_name, mime_type = await self.download_document(user_id, document_id)
+        if not content:
+            raise ValueError("Failed to download document content")
+
+        from app.utils.universal_security import decrypt_document_bytes, verify_password
+        stored_hash = doc.get("password_hash")
+        if stored_hash and not verify_password(password, stored_hash):
+            raise ValueError("Incorrect password")
+
+        decrypted_content = decrypt_document_bytes(
+            content=content,
+            password=password,
+            filename=doc.get("display_name") or orig_name,
+            mime_type=mime_type,
+            encryption_type=doc.get("encryption_type")
+        )
+        return decrypted_content, doc.get("display_name") or orig_name, mime_type
+
 
 # Singleton instance
 documents_service = DocumentsService()
