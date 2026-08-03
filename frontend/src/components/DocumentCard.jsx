@@ -70,17 +70,12 @@ export default function DocumentCard({
         ${isCut ? 'opacity-50' : ''}
       `}
     >
-      {/* Checkbox - appears on hover or when selected */}
-      <div
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onCheckboxChange?.(item.id);
-        }}
+      {/* Checkbox */}
+      <div 
         className={`
-        absolute top-2 left-2 transition-opacity duration-200
-        ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
-      `}
+          absolute top-2 left-2 transition-opacity duration-200
+          ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+        `}
       >
         <input
           type="checkbox"
@@ -91,6 +86,15 @@ export default function DocumentCard({
           className="w-3.5 h-3.5 rounded border-navy-300 text-navy-600 focus:ring-navy-500 cursor-pointer"
         />
       </div>
+
+      {/* Lock Badge */}
+      {(item.is_encrypted || item.isEncrypted || item.isProtected) && (
+        <div className="absolute top-2 left-6 z-10" title="Password Protected">
+          <span className="text-[11px] bg-slate-900/80 backdrop-blur-sm text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-md shadow flex items-center gap-0.5 font-medium">
+            🔒
+          </span>
+        </div>
+      )}
 
       {/* Favorite Star */}
       <button
