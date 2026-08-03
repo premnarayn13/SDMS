@@ -460,6 +460,15 @@ class AgentOrchestrator:
                         response = f"I found {count} file{'s' if count != 1 else ''}: {', '.join(file_names)}."
                     else:
                         response = f"I found {count} file{'s' if count != 1 else ''}."
+            elif action == "text_stats":
+                stats = data.get("stats", {})
+                response = (
+                    f"📊 **Text Statistics**:\n"
+                    f"• **Word Count**: {stats.get('word_count', 0)}\n"
+                    f"• **Character Count**: {stats.get('char_count', 0)}\n"
+                    f"• **Sentence Count**: {stats.get('sentence_count', 0)}\n"
+                    f"• **Paragraph Count**: {stats.get('paragraph_count', 0)}"
+                )
             elif action == "analytics":
                 analytics = data.get("analytics", {})
                 stats = analytics.get("file_stats", {})
@@ -904,6 +913,137 @@ class AgentOrchestrator:
                 }
             })
 
+        # ---- CONVERT ----
+        convert_match = re.search(
+            r"convert\s+(.+?)\s+(?:into|to)\s+(pdf|docx?|txt|text|pptx?|xlsx?|png|jpg|image|images)",
+            message, flags=re.IGNORECASE
+        )
+        if convert_match:
+            src = convert_match.group(1).strip().strip("'\"")
+            tgt = convert_match.group(2).strip().lower()
+            src_ext = src.rsplit(".", 1)[-1].lower() if "." in src else ""
+            tool_name = None
+            if src_ext in ("docx", "doc") or "docx" in lower or "word" in lower:
+                tool_name = "convert_docx_to_pdf"
+            elif src_ext == "pdf" and tgt in ("png", "jpg", "image", "images"):
+                tool_name = "convert_pdf_to_images"
+            elif src_ext == "pdf":
+                tool_name = "convert_pdf_to_images" if "image" in tgt else None
+            if tool_name:
+                return [{
+                    "id": "fast_convert",
+                    "type": "function",
+                    "function": {"name": tool_name, "arguments": {"file_id": src}}
+                }]
+            # Generic convert — let LLM handle it
+            return []
+
+        # ---- COMPRESS ----
+        compress_match = re.search(
+            r"compress\s+(.+?)(?:\s+(?:file|document|image|pdf))?$",
+            message, flags=re.IGNORECASE
+        )
+        if compress_match and "compress" in lower:
+            file_ref = compress_match.group(1).strip().strip("'\"")
+            return [{
+                "id": "fast_compress",
+                "type": "function",
+                "function": {"name": "compress_file", "arguments": {"file_id": file_ref}}
+            }]
+
+        # ---- BUNDLE ----
+        bundle_match = re.search(
+            r"bundle\s+(.+?)\s+(?:into|as|to|and save as)\s+([a-zA-Z0-9 _.-]+\.zip)$",
+            message, flags=re.IGNORECASE
+        )
+        bundle_simple = re.search(
+            r"bundle\s+(.+)",
+            message, flags=re.IGNORECASE
+        )
+        if bundle_match or ("bundle" in lower):
+            files_str = bundle_match.group(1) if bundle_match else (bundle_simple.group(1) if bundle_simple else "")
+            bundle_name = bundle_match.group(2).strip() if bundle_match else "bundle.zip"
+            # Extract individual filenames separated by "and", "," etc.
+            file_parts = [f.strip().strip("'\"") for f in re.split(r"\s+and\s+|,\s*", files_str, flags=re.IGNORECASE) if f.strip()]
+            if file_parts:
+                return [{
+                    "id": "fast_bundle",
+                    "type": "function",
+                    "function": {"name": "bundle_files", "arguments": {"file_ids": file_parts, "bundle_name": bundle_name}}
+                }]
+
+        # ---- EXTRACT ZIP ----
+        extract_match = re.search(
+            r"(?:extract|unzip|decompress|unpack)\s+(?:the\s+)?(?:zip\s+)?(?:file\s+)?['\"]?(.+?\.(?:zip|rar|7z|tar|gz|bz2))['\"]?",
+            message, flags=re.IGNORECASE
+        )
+        if extract_match or any(w in lower for w in ["unzip", "decompress", "extract zip", "unpack zip"]):
+            file_ref = extract_match.group(1).strip().strip("'\"") if extract_match else (file_hint or message)
+            return [{
+                "id": "fast_extract_zip",
+                "type": "function",
+                "function": {"name": "extract_zip_archive", "arguments": {"file_id": file_ref}}
+            }]
+
+        # ---- SHARE ----
+        share_match = re.search(
+            r"share\s+(.+?)(?:\s+with\s+([^\s]+@[^\s]+))?$",
+            message, flags=re.IGNORECASE
+        )
+        if share_match and "share" in lower:
+            file_ref = share_match.group(1).strip().strip("'\"")
+            email = share_match.group(2).strip() if share_match.group(2) else ""
+            args = {"file_id": file_ref}
+            if email:
+                args["email"] = email
+            return [{
+                "id": "fast_share",
+                "type": "function",
+                "function": {"name": "share_file", "arguments": args}
+            }]
+
+        # ---- WORD COUNT / TEXT STATS ----
+        stats_match = re.search(
+            r"(?:word\s+count|text\s+stats?|statistics)\s+(?:for|of|in|on)\s+(.+?)(?:\s+file)?$",
+            message, flags=re.IGNORECASE
+        )
+        if stats_match:
+            file_ref = stats_match.group(1).strip().strip("'\"")
+            return [{
+                "id": "fast_text_stats",
+                "type": "function",
+                "function": {"name": "get_text_stats", "arguments": {"file_id": file_ref}}
+            }]
+
+        # ---- ENCRYPT / DECRYPT DOCX ----
+        encrypt_match = re.search(
+            r"(?:encrypt|protect|lock)\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:with\s+password\s+|password\s+)?['\"]?([^\s'\"]+)['\"]?$",
+            message, flags=re.IGNORECASE
+        )
+        if encrypt_match or any(w in lower for w in ["encrypt", "password protect", "lock file"]):
+            if encrypt_match:
+                file_ref = encrypt_match.group(1).strip().strip("'\"")
+                pwd = encrypt_match.group(2).strip().strip("'\"")
+                return [{
+                    "id": "fast_protect",
+                    "type": "function",
+                    "function": {"name": "protect_document", "arguments": {"file_id": file_ref, "password": pwd}}
+                }]
+
+        decrypt_match = re.search(
+            r"(?:decrypt|unprotect|unlock)\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:using\s+password\s+|with\s+password\s+|password\s+)?['\"]?([^\s'\"]+)['\"]?$",
+            message, flags=re.IGNORECASE
+        )
+        if decrypt_match or any(w in lower for w in ["decrypt", "unprotect", "unlock file"]):
+            if decrypt_match:
+                file_ref = decrypt_match.group(1).strip().strip("'\"")
+                pwd = decrypt_match.group(2).strip().strip("'\"")
+                return [{
+                    "id": "fast_unprotect",
+                    "type": "function",
+                    "function": {"name": "unprotect_document", "arguments": {"file_id": file_ref, "password": pwd}}
+                }]
+
         if "open" in lower:
             tool_calls.append({
                 "id": "fallback_open",
@@ -1036,7 +1176,7 @@ class AgentOrchestrator:
         return tool_calls
 
     def _build_multi_target_tool_calls(self, message: str) -> List[Dict[str, Any]]:
-        clauses = [segment.strip() for segment in re.split(r"\s+(?:and then|and also|also|and)\s+", message, flags=re.IGNORECASE) if segment.strip()]
+        clauses = [segment.strip() for segment in re.split(r"\s*(?:,\s*then|,\s*and|and then|and also|then|also|and)\s*", message, flags=re.IGNORECASE) if segment.strip()]
         if len(clauses) < 2:
             return []
 
@@ -1045,6 +1185,26 @@ class AgentOrchestrator:
 
         for clause in clauses:
             lower = clause.lower()
+
+            create_folder_match = re.search(
+                r"(?:create|make|add)\s+(?:a\s+)?(?:new\s+)?folder\s+(?:named\s+)?['\"]?(.+?)['\"]?(?:\s+(?:in|under|inside)\s+['\"]?(.+?)['\"]?)?$",
+                clause,
+                flags=re.IGNORECASE,
+            )
+            if create_folder_match:
+                folder_name = create_folder_match.group(1).strip()
+                parent_folder = (create_folder_match.group(2) or "").strip() or None
+                if folder_name:
+                    calls.append({
+                        "id": f"fallback_{step}",
+                        "type": "function",
+                        "function": {
+                            "name": "create_folder",
+                            "arguments": {"folder_name": folder_name, "parent_folder": parent_folder}
+                        }
+                    })
+                    step += 1
+                    continue
 
             rename_folder_match = re.search(r"rename\s+(?:the\s+)?folder\s+(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:to|as)\s+['\"]?(.+?)['\"]?$", clause, flags=re.IGNORECASE)
             if rename_folder_match:
@@ -1077,7 +1237,7 @@ class AgentOrchestrator:
                 continue
 
             favorite_match = re.search(r"(?:favorite|favourite|star)\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?$", clause, flags=re.IGNORECASE)
-            put_fav_match = re.search(r"put\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:into|in|to)\s+(?:the\s+)?favo(?:u)?rites?", clause, flags=re.IGNORECASE)
+            put_fav_match = re.search(r"(?:put|make|add|mark|turn|set)\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:into|in|to|as)\s+(?:the\s+)?favo(?:u)?rites?", clause, flags=re.IGNORECASE)
             target_file = None
             if favorite_match:
                 target_file = favorite_match.group(1).strip()
@@ -1121,8 +1281,7 @@ class AgentOrchestrator:
                 step += 1
                 continue
 
-            move_match = re.search(r"move\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+to\s+['\"]?(.+?)['\"]?$", clause, flags=re.IGNORECASE)
-            push_match = re.search(r"(?:push|put|bring|take)\s+(?:the\s+file\s+)?['\"]?(.+?)['\"]?\s+(?:into|to|in)\s+(?:the\s+)?folder\s+['\"]?(.+?)['\"]?$", clause, flags=re.IGNORECASE)
+            move_match = re.search(r"(?:move|push|put|bring|take|place)\s+(?:the\s+file\s+)?(?:named\s+)?['\"]?(.+?)['\"]?\s+(?:into|to|in)\s+(?:the\s+)?(?:folder\s+)?['\"]?(.+?)['\"]?$", clause, flags=re.IGNORECASE)
             root_only_match = re.search(
                 r"(?:move|push|put|bring|take)\s+(?:the\s+file\s+)?['\"]?(.+?)['\"]?\s+(?:out\s+of\s+|from\s+)?(?:the\s+)?(?:folder\s+['\"]?.+?['\"]?\s+)?(?:to\s+)?(?:root|my drive|home)$",
                 clause,
@@ -1141,15 +1300,15 @@ class AgentOrchestrator:
                 step += 1
                 continue
 
-            if move_match or push_match:
+            if move_match:
                 calls.append({
                     "id": f"fallback_{step}",
                     "type": "function",
                     "function": {
                         "name": "move_file",
                         "arguments": {
-                            "file_id": (move_match or push_match).group(1).strip(),
-                            "folder_name": (move_match.group(2) if move_match else push_match.group(2)).strip()
+                            "file_id": move_match.group(1).strip(),
+                            "folder_name": move_match.group(2).strip()
                         }
                     }
                 })
@@ -1311,6 +1470,9 @@ class AgentOrchestrator:
         if not user_id or not action:
             return False
 
+        if action.lower() in ["search", "filter", "list_files", "list_folders", "recent_files", "folder_tree", "analytics", "storage", "word_count"]:
+            return False
+
         target = (
             data.get("file_id")
             or data.get("filename")
@@ -1342,6 +1504,7 @@ class AgentOrchestrator:
         explicit_actions = [
             "open", "download", "rename", "move", "delete", "tag", "favorite", "favourite", "star", "convert",
             "create folder", "rename folder", "move folder", "delete folder", "push", "put", "bring", "take",
+            "compress", "bundle", "share", "word count", "text stats", "encrypt", "decrypt", "merge",
         ]
         return any(action in message for action in explicit_actions)
 
