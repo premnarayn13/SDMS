@@ -71,7 +71,10 @@ class ToolRegistry:
             "get_preferences": self.get_preferences,
             "batch_move": self.batch_move,
             "batch_tag": self.batch_tag,
-            "batch_delete": self.batch_delete,
+            # ZIP & Archiving
+            "extract_zip_archive": self.extract_zip_archive,
+            "bundle_files": self.bundle_files,
+            "compress_file": self.compress_file,
             # PDF Power Tools
             "extract_pdf_text": self.extract_pdf_text,
             "convert_pdf_to_images": self.convert_pdf_to_images,
@@ -79,11 +82,16 @@ class ToolRegistry:
             "split_pdf_range": self.split_pdf_range,
             "split_pdf_pages": self.split_pdf_pages,
             "compress_pdf": self.compress_pdf,
+            "compress_image": self.compress_image,
+            "compress_file": self.compress_file,
             "rotate_pdf_pages": self.rotate_pdf_pages,
             "remove_pdf_pages": self.remove_pdf_pages,
             "reorder_pdf_pages": self.reorder_pdf_pages,
             "duplicate_pdf_pages": self.duplicate_pdf_pages,
             "password_protect_pdf": self.password_protect_pdf,
+            "remove_pdf_password": self.remove_pdf_password,
+            "protect_document": self.protect_document,
+            "unprotect_document": self.unprotect_document,
             "add_pdf_watermark": self.add_pdf_watermark,
             # Word Power Tools
             "extract_docx_text": self.extract_docx_text,
@@ -91,6 +99,9 @@ class ToolRegistry:
             "merge_word_documents": self.merge_word_documents,
             "replace_docx_text": self.replace_docx_text,
             "add_docx_watermark": self.add_docx_watermark,
+            "encrypt_docx": self.encrypt_docx,
+            "decrypt_docx": self.decrypt_docx,
+            "bundle_files": self.bundle_files,
             # PPT Power Tools
             "extract_ppt_text": self.extract_ppt_text,
             "split_ppt_slides": self.split_ppt_slides,
@@ -201,6 +212,7 @@ class ToolRegistry:
             return None
 
         value = str(folder_ref).strip()
+        value = re.sub(r"\s+(?:folder|dir|directory)$", "", value, flags=re.IGNORECASE).strip()
         if not value:
             return None
 
@@ -217,10 +229,14 @@ class ToolRegistry:
         target_compact = "".join(ch for ch in target if ch.isalnum())
         for f in folders:
             name = (f.get("name") or "").strip().lower()
+            if not name:
+                continue
             if target in name:
                 return f
             name_compact = "".join(ch for ch in name if ch.isalnum())
-            if target_compact and target_compact in name_compact:
+            if not name_compact:
+                continue
+            if target_compact and (target_compact in name_compact or name_compact in target_compact):
                 return f
 
         return None
@@ -249,7 +265,7 @@ class ToolRegistry:
     async def _get_cloud_text(self, user_id: str, file_ref: Any) -> tuple[Optional[str], Optional[str]]:
         document = await self._resolve_cloud_document(user_id, file_ref)
         if not document:
-            return None, None
+            return None, f"File '{file_ref}' not found"
 
         document_id = document.get("id")
         filename = document.get("display_name") or document.get("original_name") or "document"
@@ -334,32 +350,43 @@ class ToolRegistry:
         except Exception:
             pass
 
-        # Fallback to name-based lookup (exact then partial)
+        # Fallback to name-based lookup (exact then base name then partial)
         target = file_ref_str.lower()
         try:
             documents = await self._get_cloud_files(user_id=user_id, view="all", page_size=500)
-            exact = None
-            partial = None
             
-            target_no_ext = target.rsplit(".", 1)[0] if "." in target else target
-            target_compact = "".join(ch for ch in target_no_ext if ch.isalnum())
+            # Pass 1: Exact full filename match (case-insensitive)
+            for document in documents:
+                name = (document.get("display_name") or document.get("original_name") or "").lower()
+                if name == target:
+                    return document
+
+            # Pass 2: Base name match (matching extension if provided)
+            target_has_ext = "." in target
+            target_ext = target.rsplit(".", 1)[1] if target_has_ext else ""
+            target_no_ext = target.rsplit(".", 1)[0] if target_has_ext else target
 
             for document in documents:
                 name = (document.get("display_name") or document.get("original_name") or "").lower()
+                name_ext = name.rsplit(".", 1)[1] if "." in name else ""
                 name_no_ext = name.rsplit(".", 1)[0] if "." in name else name
-                
-                if name == target or name_no_ext == target_no_ext:
-                    exact = document
-                    break
-                
-                if (target in name or target_no_ext in name_no_ext) and partial is None:
-                    partial = document
-                    
-                name_compact = "".join(ch for ch in name_no_ext if ch.isalnum())
-                if target_compact and target_compact in name_compact and partial is None:
-                    partial = document
 
-            return exact or partial
+                if name_no_ext == target_no_ext:
+                    if not target_has_ext or name_ext == target_ext:
+                        return document
+
+            # Pass 3: Partial match
+            target_compact = "".join(ch for ch in target_no_ext if ch.isalnum())
+            for document in documents:
+                name = (document.get("display_name") or document.get("original_name") or "").lower()
+                name_no_ext = name.rsplit(".", 1)[0] if "." in name else name
+                if target_no_ext in name_no_ext or target in name:
+                    return document
+                name_compact = "".join(ch for ch in name_no_ext if ch.isalnum())
+                if target_compact and target_compact in name_compact:
+                    return document
+
+            return None
         except Exception:
             return None
 
@@ -903,46 +930,39 @@ class ToolRegistry:
             logger.error("Remove tag error: %s", e)
             return {"success": False, "error": str(e)}
 
-    async def share_file(self, user_id: str, file_id: str, email: str, permission: str = "viewer", **kwargs) -> Dict[str, Any]:
+    async def share_file(self, user_id: str, file_id: str, email: str = "", permission: str = "viewer", **kwargs) -> Dict[str, Any]:
+        """Open the share dialog / card for a file, or share with a specific email if provided."""
         try:
-            normalized_permission = permission if permission in {"viewer", "editor", "admin"} else "viewer"
-            try:
-                file_ref = self._pick_file_ref(file_id, kwargs)
-                document = await self._resolve_cloud_document(user_id, file_ref)
-                if not document:
-                    return {"success": False, "error": "File not found"}
-                document_id = document.get("id")
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found. Please check the filename and try again."}
+            document_id = document.get("id")
+            filename = document.get("display_name") or document.get("original_name") or "document"
 
-                await documents_service.add_share(user_id, document_id, email, normalized_permission)
-                return {
-                    "success": True,
-                    "file_id": str(document_id),
-                    "shared_with": email,
-                    "permission": normalized_permission,
-                    "action": "share"
-                }
-            except Exception as cloud_error:
-                logger.warning("Cloud share fallback to legacy store: %s", cloud_error)
-
-            item_id, file_item = self._resolve_file(file_id)
-            if not file_item:
-                return {"success": False, "error": "File not found"}
-
-            shared = list(file_item.get("shared") or [])
-            if not any(str(s.get("email", "")).lower() == email.lower() for s in shared):
-                shared.append({"email": email, "permission": normalized_permission})
-                self.db.update_item(item_id, {"shared": shared})
-                self.db.add_history(item_id, f"Shared with {email}")
-
-            return {
+            # Always open the share card in the frontend (the actual share dialog)
+            # If an email is also given, pass it so the frontend can pre-fill it
+            result = {
                 "success": True,
-                "file_id": str(item_id),
-                "shared_with": email,
-                "permission": normalized_permission,
-                "action": "share"
+                "file_id": str(document_id),
+                "filename": filename,
+                "action": "share",
+                "requires_frontend": True,
+                "frontend_action": {
+                    "type": "share",
+                    "file_id": str(document_id),
+                    "filename": filename
+                }
             }
+            if email and email.strip():
+                result["frontend_action"]["pre_fill_email"] = email.strip()
+                result["frontend_action"]["permission"] = permission if permission in {"viewer", "editor", "admin"} else "viewer"
+                result["message"] = f"Opening share options for '{filename}' (pre-filling email: {email.strip()})"
+            else:
+                result["message"] = f"Opening share options for '{filename}'"
+            return result
         except Exception as e:
-            logger.error("Share error: %s", e)
+            logger.error(f"Share file error: {e}")
             return {"success": False, "error": str(e)}
 
     async def remove_share(self, user_id: str, file_id: str, email: str, **kwargs) -> Dict[str, Any]:
@@ -2238,14 +2258,14 @@ class ToolRegistry:
             
             if document:
                 document_id = document.get("id")
-                content, error = await documents_service.download_document(user_id, document_id)
-                if error:
+                content, _, _err = await documents_service.download_document(user_id, document_id)
+                if _err:
                     return {"success": False, "error": f"Failed to download: {error}"}
                 
                 executor = get_pdf_executor()
                 text, error = await executor.extract_text(content)
-                if error:
-                    return {"success": False, "error": error}
+                if _err:
+                    return {"success": False, "error": _err}
                 
                 return {
                     "success": True,
@@ -2274,14 +2294,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             images, error = await executor.pdf_to_images(content)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2311,17 +2329,17 @@ class ToolRegistry:
                 if not document:
                     return {"success": False, "error": f"File {file_id} not found"}
                 
-                content, error = await documents_service.download_document(user_id, document.get("id"))
-                if error:
-                    return {"success": False, "error": error}
+                content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+                if _err:
+                    return {"success": False, "error": _err}
                 
                 pdf_contents.append(content)
                 filenames.append(document.get("display_name"))
             
             executor = get_pdf_executor()
             merged, error = await executor.merge_pdfs(pdf_contents)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2347,14 +2365,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             split_pdf, error = await executor.split_pdf_range(content, start_page - 1, end_page)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2380,14 +2396,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             pages, error = await executor.split_pdf_pages(content)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2412,19 +2426,48 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
-            compressed, error = await executor.compress_pdf(content)
-            if error:
-                return {"success": False, "error": error}
+            result = await executor.compress_pdf(content)
+            if isinstance(result, tuple):
+                if len(result) == 2:
+                    compressed, compress_err = result
+                else:
+                    compressed = result[0]
+                    compress_err = None
+            else:
+                compressed = result
+                compress_err = None
+            if compress_err:
+                return {"success": False, "error": str(compress_err)}
             
             original_size = len(content)
             compressed_size = len(compressed) if compressed else original_size
             reduction = ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
-            
+
+            if save_to_storage and compressed:
+                orig_name = document.get("display_name") or "document.pdf"
+                output_name = orig_name.rsplit('.', 1)[0] + "_compressed.pdf"
+                saved_doc = await documents_service.upload_file(
+                    user_id=user_id,
+                    file_content=compressed,
+                    filename=output_name,
+                    mime_type="application/pdf",
+                    virtual_folder_id=document.get("virtual_folder_id")
+                )
+                return {
+                    "success": True,
+                    "file_id": saved_doc.get("id"),
+                    "filename": output_name,
+                    "original_filename": orig_name,
+                    "original_size": self._human_size(original_size),
+                    "compressed_size": self._human_size(compressed_size),
+                    "size_reduction_percent": round(reduction, 1),
+                    "action": "compress_pdf",
+                    "message": f"Successfully compressed '{orig_name}' by {round(reduction, 1)}% and saved as '{output_name}'"
+                }
+
             return {
                 "success": True,
                 "file_id": str(document_id),
@@ -2437,7 +2480,82 @@ class ToolRegistry:
         except Exception as e:
             logger.error(f"PDF compression error: {e}")
             return {"success": False, "error": str(e)}
-    
+
+    async def compress_image(self, user_id: str, file_id: str, quality: int = 75, **kwargs) -> Dict[str, Any]:
+        """Compress/optimize an image file (JPEG/PNG/WEBP) and save the result."""
+        try:
+            from PIL import Image
+            import io
+
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            document_id = document.get("id")
+            orig_name = document.get("display_name") or document.get("original_name") or "image.jpg"
+            content, _, _err = await documents_service.download_document(user_id, document_id)
+
+            original_size = len(content)
+            img = Image.open(io.BytesIO(content))
+            ext = orig_name.rsplit(".", 1)[-1].lower() if "." in orig_name else "jpg"
+            fmt = "JPEG" if ext in ("jpg", "jpeg") else ("PNG" if ext == "png" else "WEBP")
+            out = io.BytesIO()
+            if fmt == "JPEG":
+                img = img.convert("RGB")
+                img.save(out, format="JPEG", quality=quality, optimize=True)
+            elif fmt == "PNG":
+                img.save(out, format="PNG", optimize=True)
+            else:
+                img.save(out, format="WEBP", quality=quality)
+            out.seek(0)
+            compressed_bytes = out.read()
+            compressed_size = len(compressed_bytes)
+            reduction = ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
+
+            output_name = orig_name.rsplit(".", 1)[0] + f"_compressed.{ext}"
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=compressed_bytes,
+                filename=output_name,
+                mime_type=f"image/{fmt.lower()}",
+                virtual_folder_id=document.get("virtual_folder_id")
+            )
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": output_name,
+                "original_filename": orig_name,
+                "original_size": self._human_size(original_size),
+                "compressed_size": self._human_size(compressed_size),
+                "size_reduction_percent": round(reduction, 1),
+                "action": "compress_image",
+                "message": f"Compressed '{orig_name}' by {round(reduction, 1)}% and saved as '{output_name}'"
+            }
+        except Exception as e:
+            logger.error(f"Image compression error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def compress_file(self, user_id: str, file_id: str, **kwargs) -> Dict[str, Any]:
+        """Universal compress: routes to compress_pdf for PDFs, or zips images and other files into a zip file."""
+        try:
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            orig_name = (document.get("display_name") or document.get("original_name") or "").lower()
+            ext = orig_name.rsplit(".", 1)[-1] if "." in orig_name else ""
+
+            if ext == "pdf":
+                return await self.compress_pdf(user_id, file_id, **kwargs)
+            else:
+                # Per user request, compressing an image or any other file type means converting it into a zip
+                return await self.bundle_files(user_id, file_ids=[file_id], bundle_name=document.get("display_name", "archive").rsplit(".", 1)[0] + ".zip", **kwargs)
+        except Exception as e:
+            logger.error(f"Compress file error: {e}")
+            return {"success": False, "error": str(e)}
+
     async def rotate_pdf_pages(self, user_id: str, file_id: str, page_numbers: list, rotation_degrees: int, save_to_storage: bool = True, **kwargs) -> Dict[str, Any]:
         """Rotate PDF pages"""
         try:
@@ -2450,14 +2568,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             rotated, error = await executor.rotate_pages(content, [p - 1 for p in (page_numbers or [])], rotation_degrees)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2483,14 +2599,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             modified, error = await executor.remove_pages(content, [p - 1 for p in (page_numbers or [])])
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2515,14 +2629,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             reordered, error = await executor.reorder_pages(content, [p - 1 for p in (page_order or [])])
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2547,14 +2659,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             duplicated, error = await executor.duplicate_pages(content, [p - 1 for p in (page_numbers or [])], copies)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2580,14 +2690,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             protected, error = await executor.password_protect(content, password)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2612,14 +2720,12 @@ class ToolRegistry:
                 return {"success": False, "error": "File not found"}
             
             document_id = document.get("id")
-            content, error = await documents_service.download_document(user_id, document_id)
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document_id)
             
             executor = get_pdf_executor()
             watermarked, error = await executor.add_watermark(content, watermark_text, opacity)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
             
             return {
                 "success": True,
@@ -2645,14 +2751,14 @@ class ToolRegistry:
         
             if document:
                 document_id = document.get("id")
-                content, error = await documents_service.download_document(user_id, document_id)
-                if error:
+                content, _, _err = await documents_service.download_document(user_id, document_id)
+                if _err:
                     return {"success": False, "error": f"Failed to download: {error}"}
             
                 executor = get_word_executor()
                 text, error = await executor.extract_text(content)
-                if error:
-                    return {"success": False, "error": error}
+                if _err:
+                    return {"success": False, "error": _err}
             
                 return {
                     "success": True,
@@ -2669,7 +2775,7 @@ class ToolRegistry:
             return {"success": False, "error": str(e)}
 
     async def convert_docx_to_pdf(self, user_id: str, file_id: str, **kwargs) -> Dict[str, Any]:
-        """Convert DOCX to PDF (requires external converter)"""
+        """Convert DOCX to PDF"""
         try:
             from app.services.word.word_power_tools import get_word_executor
         
@@ -2678,16 +2784,33 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            doc_id = document.get("id")
+            content, _, _err = await documents_service.download_document(user_id, doc_id)
+            if not content:
+                return {"success": False, "error": "Empty file content"}
 
             executor = get_word_executor()
             pdf_bytes, error = await executor.convert_to_pdf(content)
-            if error:
-                return {"success": False, "error": error}
+            if error or not pdf_bytes:
+                return {"success": False, "error": error or "Conversion returned empty PDF"}
 
-            return {"success": True, "file_id": document.get("id"), "action": "convert_docx_to_pdf"}
+            orig_name = document.get("display_name") or "document.docx"
+            output_name = orig_name.rsplit('.', 1)[0] + ".pdf"
+
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=pdf_bytes,
+                filename=output_name,
+                mime_type="application/pdf",
+                virtual_folder_id=document.get("virtual_folder_id")
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": output_name,
+                "message": f"Successfully converted '{orig_name}' to PDF '{output_name}'"
+            }
         except Exception as e:
             logger.error(f"Convert DOCX to PDF error: {e}")
             return {"success": False, "error": str(e)}
@@ -2699,18 +2822,40 @@ class ToolRegistry:
 
             contents = []
             for fid in file_ids:
-                content, error = await documents_service.download_document(user_id, fid)
-                if error:
+                file_ref = self._pick_file_ref(fid, kwargs)
+                document = await self._resolve_cloud_document(user_id, file_ref)
+                if not document:
+                    return {"success": False, "error": f"File '{fid}' not found"}
+                content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+                if _err:
                     return {"success": False, "error": f"Failed to download {fid}: {error}"}
                 contents.append(content)
 
             executor = get_word_executor()
             merged, error = await executor.merge_documents(contents)
-            if error:
-                return {"success": False, "error": error}
+            if error or not merged:
+                return {"success": False, "error": _err or "Merge produced empty file"}
 
-            # Persisting the merged document is left to higher layer; return success
-            return {"success": True, "action": "merge_word_documents"}
+            first_fid = file_ids[0] if file_ids else None
+            first_ref = self._pick_file_ref(first_fid, kwargs) if first_fid else None
+            first_doc = await self._resolve_cloud_document(user_id, first_ref) if first_ref else None
+            folder_id = first_doc.get("virtual_folder_id") if first_doc else None
+
+            output_name = "merged_document.docx"
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=merged,
+                filename=output_name,
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                virtual_folder_id=folder_id
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": output_name,
+                "message": f"Successfully merged {len(file_ids)} Word documents into '{output_name}'"
+            }
         except Exception as e:
             logger.error(f"Merge DOCX error: {e}")
             return {"success": False, "error": str(e)}
@@ -2725,22 +2870,205 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            doc_id = document.get("id")
+            content, _, _err = await documents_service.download_document(user_id, doc_id)
 
             executor = get_word_executor()
             updated, error = await executor.replace_text(content, find_text, replace_text)
-            if error:
-                return {"success": False, "error": error}
+            if error or not updated:
+                return {"success": False, "error": _err or "Replace text produced empty file"}
 
-            return {"success": True, "action": "replace_docx_text"}
+            orig_name = document.get("display_name") or "document.docx"
+            output_name = orig_name.rsplit('.', 1)[0] + "_modified.docx"
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=updated,
+                filename=output_name,
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                virtual_folder_id=document.get("virtual_folder_id")
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": output_name,
+                "message": f"Replaced '{find_text}' with '{replace_text}' in '{orig_name}' and saved as '{output_name}'"
+            }
         except Exception as e:
             logger.error(f"Replace DOCX text error: {e}")
             return {"success": False, "error": str(e)}
 
+    async def encrypt_docx(self, user_id: str, file_id: str, password: str, **kwargs) -> Dict[str, Any]:
+        """Encrypt a DOCX file with password protection"""
+        try:
+            from app.utils.docx_security import encrypt_docx_bytes
+
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            doc_id = document.get("id")
+            content, _, _err = await documents_service.download_document(user_id, doc_id)
+            if error or not content:
+                return {"success": False, "error": f"Failed to download document: {error}"}
+
+            encrypted_bytes = encrypt_docx_bytes(content, password)
+            orig_name = document.get("display_name") or "document.docx"
+            out_filename = orig_name.rsplit('.', 1)[0] + "_encrypted.docx"
+
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=encrypted_bytes,
+                filename=out_filename,
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                virtual_folder_id=document.get("virtual_folder_id")
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": out_filename,
+                "message": f"Successfully encrypted '{orig_name}' with password protection as '{out_filename}'"
+            }
+        except Exception as e:
+            logger.error(f"Encrypt DOCX error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def protect_document(self, user_id: str, file_id: str, password: str, password_hint: str = None, **kwargs) -> Dict[str, Any]:
+        """Password encrypt any document (PDF, Word, Excel, PPT, Image, TXT)."""
+        try:
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            doc_id = document.get("id")
+            await documents_service.encrypt_document(user_id, doc_id, password, password_hint)
+            return {
+                "success": True,
+                "file_id": str(doc_id),
+                "filename": document.get("display_name"),
+                "action": "protect_document",
+                "message": f"Successfully applied password protection to '{document.get('display_name')}'"
+            }
+        except Exception as e:
+            logger.error(f"Protect document error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def unprotect_document(self, user_id: str, file_id: str, password: str, **kwargs) -> Dict[str, Any]:
+        """Remove password protection from any encrypted document."""
+        try:
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            doc_id = document.get("id")
+            await documents_service.decrypt_document(user_id, doc_id, password)
+            return {
+                "success": True,
+                "file_id": str(doc_id),
+                "filename": document.get("display_name"),
+                "action": "unprotect_document",
+                "message": f"Successfully removed password protection from '{document.get('display_name')}'"
+            }
+        except Exception as e:
+            logger.error(f"Unprotect document error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def decrypt_docx(self, user_id: str, file_id: str, password: str, **kwargs) -> Dict[str, Any]:
+        """Decrypt a password-protected DOCX file"""
+        try:
+            from app.utils.docx_security import decrypt_docx_bytes
+
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"File '{file_id}' not found"}
+
+            doc_id = document.get("id")
+            content, _, _err = await documents_service.download_document(user_id, doc_id)
+            if error or not content:
+                return {"success": False, "error": f"Failed to download document: {error}"}
+
+            decrypted_bytes = decrypt_docx_bytes(content, password)
+            orig_name = document.get("display_name") or "document.docx"
+            out_filename = orig_name.rsplit('.', 1)[0] + "_decrypted.docx"
+
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=decrypted_bytes,
+                filename=out_filename,
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                virtual_folder_id=document.get("virtual_folder_id")
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": out_filename,
+                "message": f"Successfully decrypted '{orig_name}' as '{out_filename}'"
+            }
+        except Exception as e:
+            logger.error(f"Decrypt DOCX error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def bundle_files(self, user_id: str, file_ids: list, bundle_name: str = "bundle.zip", **kwargs) -> Dict[str, Any]:
+        """Bundle multiple files into a single ZIP archive file and upload it"""
+        try:
+            import zipfile
+            import io
+
+            if not file_ids:
+                return {"success": False, "error": "No file IDs provided to bundle"}
+
+            zip_buffer = io.BytesIO()
+            bundled_count = 0
+            parent_folder_id = None
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for fid in file_ids:
+                    file_ref = self._pick_file_ref(fid, kwargs)
+                    document = await self._resolve_cloud_document(user_id, file_ref)
+                    if not document:
+                        continue
+                    if parent_folder_id is None:
+                        parent_folder_id = document.get("virtual_folder_id")
+                    doc_id = document.get("id")
+                    content, _, _err = await documents_service.download_document(user_id, doc_id)
+                    if content:
+                        fname = document.get("display_name") or document.get("original_name") or f"file_{doc_id}"
+                        zip_file.writestr(fname, content)
+                        bundled_count += 1
+
+            if bundled_count == 0:
+                return {"success": False, "error": "Could not download any specified files to create bundle"}
+
+            zip_bytes = zip_buffer.getvalue()
+            out_name = bundle_name if bundle_name.lower().endswith(".zip") else f"{bundle_name}.zip"
+
+            saved_doc = await documents_service.upload_file(
+                user_id=user_id,
+                file_content=zip_bytes,
+                filename=out_name,
+                mime_type="application/zip",
+                virtual_folder_id=parent_folder_id
+            )
+
+            return {
+                "success": True,
+                "file_id": saved_doc.get("id"),
+                "filename": out_name,
+                "bundled_count": bundled_count,
+                "action": "bundle_files",
+                "message": f"Successfully bundled {bundled_count} file(s) into '{out_name}'"
+            }
+        except Exception as e:
+            logger.error(f"Bundle files error: {e}")
+            return {"success": False, "error": str(e)}
+
     async def add_docx_watermark(self, user_id: str, file_id: str, watermark_text: str, **kwargs) -> Dict[str, Any]:
-        """Add watermark to DOCX (placeholder)"""
+        """Add watermark to DOCX"""
         try:
             from app.services.word.word_power_tools import get_word_executor
 
@@ -2749,14 +3077,14 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_word_executor()
             result, error = await executor.add_watermark(content, watermark_text)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
 
             return {"success": True, "action": "add_docx_watermark"}
         except Exception as e:
@@ -2775,14 +3103,14 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_ppt_executor()
             text, error = await executor.extract_text(content)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
 
             return {"success": True, "text_content": text[:5000] if text else "", "action": "extract_ppt_text"}
         except Exception as e:
@@ -2799,14 +3127,14 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_ppt_executor()
             slides, error = await executor.split_slides(content)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
 
             return {"success": True, "slides_count": len(slides), "action": "split_ppt_slides"}
         except Exception as e:
@@ -2820,15 +3148,15 @@ class ToolRegistry:
 
             contents = []
             for fid in file_ids:
-                content, error = await documents_service.download_document(user_id, fid)
-                if error:
+                content, _, _err = await documents_service.download_document(user_id, fid)
+                if _err:
                     return {"success": False, "error": f"Failed to download {fid}: {error}"}
                 contents.append(content)
 
             executor = get_ppt_executor()
             merged, error = await executor.merge_presentations(contents)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
 
             return {"success": True, "action": "merge_ppt_presentations"}
         except Exception as e:
@@ -2845,14 +3173,14 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_ppt_executor()
             result, error = await executor.add_watermark(content, watermark_text)
-            if error:
-                return {"success": False, "error": error}
+            if _err:
+                return {"success": False, "error": _err}
 
             return {"success": True, "action": "add_ppt_watermark"}
         except Exception as e:
@@ -2871,9 +3199,9 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_csv_executor()
             rows, err = await executor.preview(content, max_rows=max_rows)
@@ -2892,9 +3220,9 @@ class ToolRegistry:
             document = await self._resolve_cloud_document(user_id, file_ref)
             if not document:
                 return {"success": False, "error": "File not found"}
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
             executor = get_csv_executor()
             rows, err = await executor.get_rows(content, limit=limit)
             if err:
@@ -2911,9 +3239,9 @@ class ToolRegistry:
             document = await self._resolve_cloud_document(user_id, file_ref)
             if not document:
                 return {"success": False, "error": "File not found"}
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
             executor = get_csv_executor()
             updated_bytes, err = await executor.update_cell(content, row_index, column, new_value)
             if err:
@@ -2930,9 +3258,9 @@ class ToolRegistry:
             document = await self._resolve_cloud_document(user_id, file_ref)
             if not document:
                 return {"success": False, "error": "File not found"}
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
             executor = get_csv_executor()
             updated_bytes, err = await executor.append_row(content, row)
             if err:
@@ -2949,9 +3277,9 @@ class ToolRegistry:
             document = await self._resolve_cloud_document(user_id, file_ref)
             if not document:
                 return {"success": False, "error": "File not found"}
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
             executor = get_csv_executor()
             updated_bytes, err = await executor.delete_row(content, row_index)
             if err:
@@ -2985,9 +3313,9 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             filename = document.get("display_name") or document.get("original_name") or "document"
             executor = get_media_executor()
@@ -3014,9 +3342,9 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_media_executor()
             metadata, err = await executor.extract_image_metadata(content, document.get("display_name") or document.get("original_name") or "image")
@@ -3042,9 +3370,9 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_media_executor()
             metadata, err = await executor.extract_audio_metadata(content, document.get("display_name") or document.get("original_name") or "audio")
@@ -3070,9 +3398,9 @@ class ToolRegistry:
             if not document:
                 return {"success": False, "error": "File not found"}
 
-            content, error = await documents_service.download_document(user_id, document.get("id"))
-            if error:
-                return {"success": False, "error": error}
+            content, _, _err = await documents_service.download_document(user_id, document.get("id"))
+            if _err:
+                return {"success": False, "error": _err}
 
             executor = get_media_executor()
             metadata, err = await executor.extract_video_metadata(content, document.get("display_name") or document.get("original_name") or "video")
@@ -3087,6 +3415,66 @@ class ToolRegistry:
             }
         except Exception as e:
             logger.error(f"Video metadata error: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def extract_zip_archive(self, user_id: str, file_id: str, **kwargs) -> Dict[str, Any]:
+        """Extract all files from a ZIP archive into a dedicated folder."""
+        try:
+            import zipfile
+            import io
+            import mimetypes
+
+            file_ref = self._pick_file_ref(file_id, kwargs)
+            document = await self._resolve_cloud_document(user_id, file_ref)
+            if not document:
+                return {"success": False, "error": f"ZIP File '{file_id}' not found"}
+
+            doc_id = document.get("id")
+            orig_name = document.get("display_name") or document.get("original_name") or "archive.zip"
+            folder_base_name = orig_name.rsplit(".", 1)[0] + "_extracted"
+            parent_folder_id = document.get("virtual_folder_id")
+
+            content, _, _err = await documents_service.download_document(user_id, doc_id)
+            if not content:
+                return {"success": False, "error": _err or "Failed to download zip file content"}
+
+            dest_folder = await self.create_folder(user_id, folder_name=folder_base_name, parent_folder=parent_folder_id)
+            dest_folder_id = dest_folder.get("folder_id")
+
+            extracted_files = []
+            with zipfile.ZipFile(io.BytesIO(content), 'r') as zip_ref:
+                for zip_info in zip_ref.infolist():
+                    if zip_info.is_dir():
+                        continue
+                    if zip_info.filename.startswith("__MACOSX/") or zip_info.filename.startswith("."):
+                        continue
+                    
+                    file_data = zip_ref.read(zip_info.filename)
+                    clean_filename = zip_info.filename.rsplit("/", 1)[-1]
+                    if not clean_filename:
+                        continue
+                    
+                    mime, _ = mimetypes.guess_type(clean_filename)
+                    saved = await documents_service.upload_file(
+                        user_id=user_id,
+                        file_content=file_data,
+                        filename=clean_filename,
+                        mime_type=mime or "application/octet-stream",
+                        virtual_folder_id=dest_folder_id
+                    )
+                    extracted_files.append(saved.get("display_name") or clean_filename)
+
+            return {
+                "success": True,
+                "folder_id": dest_folder_id,
+                "folder_name": folder_base_name,
+                "extracted_count": len(extracted_files),
+                "extracted_files": extracted_files,
+                "action": "extract_zip_archive",
+                "message": f"Successfully extracted {len(extracted_files)} file(s) into folder '{folder_base_name}'"
+            }
+        except Exception as e:
+            logger.error(f"Extract ZIP error: {e}")
             return {"success": False, "error": str(e)}
     def _human_size(self, size_bytes: int) -> str:
         units = ["B", "KB", "MB", "GB", "TB"]
