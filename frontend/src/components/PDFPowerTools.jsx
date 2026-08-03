@@ -71,6 +71,43 @@ export default function PDFPowerTools({ item, onClose }) {
     }
   };
 
+  // === STORAGE HELPER ===
+  const saveConvertedToStorage = async (content, outputName, mimeType) => {
+    const blob = content instanceof Blob
+      ? content
+      : new Blob([content], { type: mimeType || 'application/octet-stream' });
+    const effectiveType = mimeType || blob.type || 'application/octet-stream';
+
+    try {
+      const file = new File([blob], outputName, {
+        type: effectiveType
+      });
+      if (actions.uploadFile) {
+        await actions.uploadFile(file, item ? item.parentId : null);
+      } else {
+        throw new Error('Upload function not available');
+      }
+      if (actions.refreshItems) {
+        await actions.refreshItems();
+      } else if (actions.loadData) {
+        await actions.loadData();
+      }
+      return true;
+    } catch (error) {
+      console.error('Storage upload failed, falling back to download:', error);
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = outputName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+      showMessage('success', `Saved as download (${outputName}) because storage upload failed`);
+      return true;
+    }
+  };
+
   // === HANDLER FUNCTIONS ===
 
   const handleFillForm = () => {
@@ -243,7 +280,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const mergedBytes = await pdfTools.mergePDFFiles(selectedFiles);
-        pdfTools.downloadBytes(mergedBytes, 'merged.pdf');
+        await saveConvertedToStorage(mergedBytes, 'merged.pdf', 'application/pdf');
       },
       'PDFs merged successfully!'
     );
@@ -258,7 +295,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const reorderedBytes = await pdfTools.reorderPDFPages(item.url || item.path, newOrder);
-        pdfTools.downloadBytes(reorderedBytes, `reordered_${item.name}`);
+        await saveConvertedToStorage(reorderedBytes, `reordered_${item.name}`, 'application/pdf');
       },
       'Pages reordered successfully!'
     );
@@ -272,7 +309,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const pdfBytes = await pdfTools.imagesToPDF(selectedFiles);
-        pdfTools.downloadBytes(pdfBytes, 'images_converted.pdf');
+        await saveConvertedToStorage(pdfBytes, 'images_converted.pdf', 'application/pdf');
       },
       'Images converted to PDF!'
     );
@@ -286,7 +323,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const pdfBytes = await pdfTools.docToPDF(selectedFiles[0]);
-        pdfTools.downloadBytes(pdfBytes, selectedFiles[0].name.replace(/\.(docx?)/i, '.pdf'));
+        await saveConvertedToStorage(pdfBytes, selectedFiles[0].name.replace(/\.(docx?)/i, '.pdf'), 'application/pdf');
       },
       'Document converted to PDF!'
     );
@@ -300,7 +337,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const pdfBytes = await pdfTools.txtToPDF(selectedFiles[0]);
-        pdfTools.downloadBytes(pdfBytes, selectedFiles[0].name.replace(/\.txt/i, '.pdf'));
+        await saveConvertedToStorage(pdfBytes, selectedFiles[0].name.replace(/\.txt/i, '.pdf'), 'application/pdf');
       },
       'Text file converted to PDF!'
     );
@@ -309,7 +346,8 @@ export default function PDFPowerTools({ item, onClose }) {
   const handlePDFToDoc = () => {
     executeAction(
       async () => {
-        await pdfTools.downloadPDFAsDoc(item.url || item.path, item.name.replace(/\.pdf/i, '.doc'));
+        const blob = await pdfTools.pdfToDoc(item.url || item.path);
+        await saveConvertedToStorage(blob, item.name.replace(/\.pdf/i, '.docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
       },
       'PDF converted to DOC!'
     );
@@ -319,7 +357,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const compressedBytes = await pdfTools.compressPDF(item.url || item.path);
-        pdfTools.downloadBytes(compressedBytes, `compressed_${item.name}`);
+        await saveConvertedToStorage(compressedBytes, `compressed_${item.name}`, 'application/pdf');
       },
       'PDF compressed successfully!'
     );
@@ -333,7 +371,7 @@ export default function PDFPowerTools({ item, onClose }) {
     executeAction(
       async () => {
         const rotatedBytes = await pdfTools.rotatePDF(item.url || item.path, degrees, indices.length ? indices : null);
-        pdfTools.downloadBytes(rotatedBytes, `rotated_${item.name}`);
+        await saveConvertedToStorage(rotatedBytes, `rotated_${item.name}`, 'application/pdf');
       },
       `PDF rotated ${degrees}°!`
     );
