@@ -4,6 +4,7 @@ Documents API Router
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import StreamingResponse, Response
 from typing import Optional, List
+from pydantic import BaseModel
 
 from ...middleware.auth import get_current_user, get_verified_user
 from .schemas import (
@@ -94,6 +95,8 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
@@ -634,3 +637,81 @@ async def remove_tag(
         return DocumentResponse(**document)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+class EncryptDocumentRequest(BaseModel):
+    password: str
+    password_hint: Optional[str] = None
+
+class DecryptDocumentRequest(BaseModel):
+    password: str
+
+class UnlockDocumentRequest(BaseModel):
+    password: str
+
+
+@router.post("/{document_id}/encrypt", response_model=DocumentResponse)
+async def encrypt_document_endpoint(
+    document_id: str,
+    request: EncryptDocumentRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Encrypt any document with password protection."""
+    try:
+        doc = await documents_service.encrypt_document(
+            user_id=user["id"],
+            document_id=document_id,
+            password=request.password,
+            password_hint=request.password_hint
+        )
+        return DocumentResponse(**doc)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to encrypt document: {e}")
+
+
+@router.post("/{document_id}/decrypt", response_model=DocumentResponse)
+async def decrypt_document_endpoint(
+    document_id: str,
+    request: DecryptDocumentRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Decrypt an encrypted document and remove password protection."""
+    try:
+        doc = await documents_service.decrypt_document(
+            user_id=user["id"],
+            document_id=document_id,
+            password=request.password
+        )
+        return DocumentResponse(**doc)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to decrypt document: {e}")
+
+
+@router.post("/{document_id}/unlock")
+async def unlock_document_endpoint(
+    document_id: str,
+    request: UnlockDocumentRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Unlock an encrypted document in memory and return content for previewing."""
+    try:
+        decrypted_bytes, filename, mime_type = await documents_service.unlock_document(
+            user_id=user["id"],
+            document_id=document_id,
+            password=request.password
+        )
+        return Response(
+            content=decrypted_bytes,
+            media_type=mime_type,
+            headers={
+                "Content-Disposition": f'inline; filename="{filename}"'
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to unlock document: {e}")
