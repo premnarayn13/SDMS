@@ -1357,16 +1357,6 @@ function AppContent({ user, onSettingsClick, onLogout }) {
           }}
           onBundleClick={handleBundleUp}
           selectedItemsCount={selectedItems.length}
-          onPDFToolsClick={() => {
-            const target = getPowerToolsTarget();
-            if (target) {
-              setPdfToolsItem(target);
-              setPdfToolsSection('general');
-              setShowPDFTools(true);
-            } else {
-              showToast('Please select a file to use Power Tools', 'warning');
-            }
-          }}
           onStorageManagerClick={() => setShowStorageManager(true)}
           onBackupRestoreClick={() => setShowBackupRestore(true)}
           onSettingsClick={onSettingsClick}
@@ -1884,6 +1874,12 @@ function AppContent({ user, onSettingsClick, onLogout }) {
           }}
           onShowAnalytics={() => setShowAnalyticsDashboard(true)}
           onNotify={(message, type = 'success') => showToast(message, type)}
+          onOpenShare={(file) => {
+            if (file) {
+              actions.selectItem(file.id);
+              setShowShareModal(true);
+            }
+          }}
         />
       )}
     </div>
