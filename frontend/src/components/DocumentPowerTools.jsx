@@ -487,6 +487,9 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
       setLoading(true);
       await actionFn();
       showMessage('success', successMsg);
+      if (actions.refreshItems) {
+        await actions.refreshItems();
+      }
     } catch (error) {
       showMessage('error', error.message || 'Operation failed');
     } finally {
@@ -554,7 +557,7 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
       const file = new File([blob], outputName, {
         type: effectiveType
       });
-      await actions.uploadFile(file, null); // Force save to root of Google Drive as a new file
+      await actions.uploadFile(file, item?.parentId || null); // Preserve parent folder location!
       return true;
     } catch (error) {
       const downloadUrl = URL.createObjectURL(blob);
@@ -1123,24 +1126,28 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
     }, 'Blank pages cleanup completed!');
   };
 
-  // 10. Password Protect
+  // 10. Password Protect (Universal)
   const handlePasswordProtect = async () => {
     if (!passwords.userPassword) {
       showMessage('error', 'Enter a password');
       return;
     }
     executeAction(async () => {
-      const protectedBytes = await pdfTools.passwordProtectPDF(await getItemUrl(), passwords);
-      await saveConvertedToStorage(protectedBytes, makePdfOutputName('protected'), 'application/pdf');
-    }, 'Password protection applied!');
+      await documentOpsApi.encryptDocument(item.id, passwords.userPassword, passwords.passwordHint);
+      if (actions.refreshItems) await actions.refreshItems();
+    }, 'Password protection applied successfully!');
   };
 
-  // 11. Remove Password
+  // 11. Remove Password (Universal)
   const handleRemovePassword = async () => {
+    if (!passwords.userPassword) {
+      showMessage('error', 'Enter current password');
+      return;
+    }
     executeAction(async () => {
-      const unlockedBytes = await pdfTools.removePasswordPDF(await getItemUrl(), passwords.userPassword);
-      await saveConvertedToStorage(unlockedBytes, makePdfOutputName('unlocked'), 'application/pdf');
-    }, 'Password removed!');
+      await documentOpsApi.decryptDocument(item.id, passwords.userPassword);
+      if (actions.refreshItems) await actions.refreshItems();
+    }, 'Password protection removed successfully!');
   };
 
   // 13. PDF to Text
@@ -2574,44 +2581,57 @@ export default function DocumentPowerTools({ item, onClose, initialSection = 'ma
   );
 
   const renderSecuritySection = () => (
-    <Section title="Security & Password" icon="lock" onBack={() => setActiveSection('main')}>
-      <div className="space-y-3">
-        <div className="bg-navy-50 rounded-lg p-3 border border-navy-100">
-          <h4 className="text-xs font-medium text-navy-700 mb-2 flex items-center gap-1">
-            <Icon name="lock" size={12} /> Add Password
-          </h4>
-          <input
-            type="password"
-            placeholder="Set password"
-            value={passwords.userPassword}
-            onChange={(e) => setPasswords({ ...passwords, userPassword: e.target.value })}
-            className="input w-full text-sm mb-2"
-          />
-          <input
-            type="password"
-            placeholder="Owner password (optional)"
-            value={passwords.ownerPassword}
-            onChange={(e) => setPasswords({ ...passwords, ownerPassword: e.target.value })}
-            className="input w-full text-sm mb-2"
-          />
-          <button onClick={handlePasswordProtect} className="btn-primary w-full text-sm">
-            Protect PDF
-          </button>
+    <Section title="Security & Password Protection" icon="lock" onBack={() => setActiveSection('main')}>
+      <div className="space-y-4">
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="p-2 rounded-lg bg-amber-100 text-amber-700">🔒</span>
+            <div>
+              <h4 className="text-sm font-semibold text-slate-800">Apply Password Encryption</h4>
+              <p className="text-xs text-slate-500">Encrypt this file for platform preview and downloads</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <input
+              type="password"
+              placeholder="Set password"
+              value={passwords.userPassword}
+              onChange={(e) => setPasswords({ ...passwords, userPassword: e.target.value })}
+              className="input w-full text-sm"
+            />
+            <input
+              type="text"
+              placeholder="Password hint (optional)"
+              value={passwords.passwordHint}
+              onChange={(e) => setPasswords({ ...passwords, passwordHint: e.target.value })}
+              className="input w-full text-sm"
+            />
+            <button onClick={handlePasswordProtect} className="btn-primary w-full text-sm py-2.5 font-bold flex items-center justify-center gap-2">
+              <span>🔒</span> Protect Document
+            </button>
+          </div>
         </div>
-        <div className="bg-navy-50 rounded-lg p-3 border border-navy-100">
-          <h4 className="text-xs font-medium text-navy-700 mb-2 flex items-center gap-1">
-            <Icon name="unlock" size={12} /> Remove Password
-          </h4>
-          <input
-            type="password"
-            placeholder="Enter current password"
-            value={passwords.userPassword}
-            onChange={(e) => setPasswords({ ...passwords, userPassword: e.target.value })}
-            className="input w-full text-sm mb-2"
-          />
-          <button onClick={handleRemovePassword} className="btn-secondary w-full text-sm">
-            Unlock PDF
-          </button>
+
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="p-2 rounded-lg bg-emerald-100 text-emerald-700">🔓</span>
+            <div>
+              <h4 className="text-sm font-semibold text-slate-800">Remove Password Protection</h4>
+              <p className="text-xs text-slate-500">Permanently decrypt file and remove password</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <input
+              type="password"
+              placeholder="Enter current password"
+              value={passwords.userPassword}
+              onChange={(e) => setPasswords({ ...passwords, userPassword: e.target.value })}
+              className="input w-full text-sm"
+            />
+            <button onClick={handleRemovePassword} className="btn-secondary w-full text-sm py-2.5 font-bold flex items-center justify-center gap-2">
+              <span>🔓</span> Remove Protection
+            </button>
+          </div>
         </div>
       </div>
     </Section>
