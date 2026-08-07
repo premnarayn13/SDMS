@@ -236,7 +236,7 @@ class FoldersService:
         self,
         user_id: str,
         folder_id: str,
-        recursive: bool = False,
+        recursive: bool = True,
         otp: Optional[str] = None
     ) -> bool:
         """Delete folder (requires OTP for recursive)"""
@@ -369,7 +369,7 @@ class FoldersService:
     
     async def _delete_folder_recursive(self, user_id: str, folder_id: str):
         """Delete folder and all contents recursively"""
-        from .documents.service import documents_service
+        from app.services.documents.service import documents_service
         
         # Delete files in this folder (soft delete)
         files = self.db.table("file_metadata").select("id").eq(
