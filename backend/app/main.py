@@ -19,12 +19,21 @@ from .models import (
     User, StorageInfo
 )
 from .middleware.auth import get_current_user
+from .ai.document_ai.router import router as ai_document_router
 
 app = FastAPI(title="DocMatrix API", version="1.0.0")
+
+# Include Document AI Assistant Router
+app.include_router(ai_document_router, prefix="/api/v1")  # /api/v1/ai/document/*
+app.include_router(ai_document_router)                     # /ai/document/*
+
+
+
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to DocMatrix API", "status": "running"}
+
 
 # CORS middleware
 app.add_middleware(
