@@ -14,10 +14,13 @@ class SafetyGuard:
     Classifies operations into safety levels and blocks RED operations.
     """
     
-    # Operations that are blocked (require OTP or UI interaction)
+    # Operations that are blocked — cannot be performed through the AI Agent
+    # delete_file: Trash via agent disabled — use the UI for delete operations
+    # permanent_delete_file: Always requires OTP
+    # Security-sensitive account operations remain blocked
     BLOCKED_OPERATIONS = {
-        "permanent_delete_file",
-        "delete_folder",  # Requires OTP
+        "delete_file",             # Delete operations disabled via agent (use UI)
+        "permanent_delete_file",   # Requires OTP verification
         "delete_account",
         "change_password",
         "unlink_drive",
