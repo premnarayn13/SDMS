@@ -89,7 +89,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "search_files",
-                "description": "Search for files by name, content, or tags. Use this to find files before performing operations on them.",
+                "description": "Search for files by name, content, or tags. Use when user says: find, search, look for, locate, where is, show me, get, find my.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -117,7 +117,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "open_file",
-                "description": "Open a file in the viewer. Returns the file's view URL.",
+                "description": "Open a file in the viewer. Use when user says: open, view, preview, display, show, read.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -134,7 +134,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "download_file",
-                "description": "Download a file to the user's computer.",
+                "description": "Download a file to the user's computer. Use when user says: download, save to computer, get file, export.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -151,7 +151,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "rename_file",
-                "description": "Rename a file to a new name.",
+                "description": "Rename a file to a new name. Use when user says: rename, change name, call it, update filename, correct filename, modify name, save as, instead name it, relabel, give it a new name, update title.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -172,7 +172,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "move_file",
-                "description": "Move a file to a different folder.",
+                "description": "Move a file to a different folder. Use when user says: move, put into, place in, transfer to, push to, send to, bring to, take to, put in the folder, organize into.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -201,7 +201,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "duplicate_file",
-                "description": "Create a copy of a file.",
+                "description": "Create a copy of a file. Use when user says: duplicate, copy, make a copy, clone.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -252,7 +252,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "toggle_favorite",
-                "description": "Add or remove a star/favorite marking on a file.",
+                "description": "Add or remove a star/favorite marking on a file. Use when user says: favorite, star, bookmark, mark as important, add to favorites, mark as favorite, unfavorite, unstar.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -269,7 +269,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "add_tag",
-                "description": "Add a tag to a file for organization.",
+                "description": "Add a tag to a file for organization. Use when user says: tag, label, categorize, mark as, classify, add tag, add label.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -290,7 +290,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "remove_tag",
-                "description": "Remove a tag from a file.",
+                "description": "Remove a tag from a file. Use when user says: remove tag, untag, remove label.",
                 "parameters": {
                     "type": "object",
                     "properties": {
