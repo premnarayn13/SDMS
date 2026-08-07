@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
 export default function DocumentAILoader({ documentName = 'Document' }) {
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
-    { label: 'Reading document layout & structure...', icon: '📄' },
-    { label: 'Running Document AI OCR & extraction...', icon: '⚡' },
-    { label: 'Analyzing entities, dates & monetary values...', icon: '🔍' },
-    { label: 'Detecting action items, clauses & risks...', icon: '🛡️' },
-    { label: 'Generating Executive Intelligence Workspace...', icon: '✨' }
+    { label: 'Reading document layout & structure...', icon: 'ðŸ“„' },
+    { label: 'Running Document AI OCR & extraction...', icon: 'âš¡' },
+    { label: 'Analyzing entities, dates & monetary values...', icon: 'ðŸ”' },
+    { label: 'Detecting action items, clauses & risks...', icon: 'ðŸ›¡ï¸' },
+    { label: 'Generating Executive Intelligence Workspace...', icon: 'âœ¨' }
   ];
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function DocumentAILoader({ documentName = 'Document' }) {
             <div className="w-full h-full bg-white rounded-[22px] flex items-center justify-center shadow-inner relative overflow-hidden">
               {/* Laser Scan Line Beam Effect */}
               <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_12px_#38bdf8] animate-laser-scan"></div>
-              <span className="text-4xl transform hover:scale-110 transition-transform">🤖</span>
+              <span className="text-4xl transform hover:scale-110 transition-transform">ðŸ¤–</span>
             </div>
           </div>
 
@@ -50,7 +50,7 @@ export default function DocumentAILoader({ documentName = 'Document' }) {
           Analyzing Document Intelligence
         </h2>
         <p className="text-xs font-semibold text-blue-700 bg-blue-100/80 px-3.5 py-1 rounded-full border border-blue-200 mb-8 truncate max-w-xs shadow-sm">
-          📄 {documentName}
+          ðŸ“„ {documentName}
         </p>
 
         {/* Step Progress Container with 3D Glass Layout */}
@@ -78,7 +78,7 @@ export default function DocumentAILoader({ documentName = 'Document' }) {
                       : 'bg-slate-100 text-slate-400'
                   }`}
                 >
-                  {isDone ? '✓' : step.icon}
+                  {isDone ? 'âœ“' : step.icon}
                 </div>
                 <span className="text-xs font-medium truncate">{step.label}</span>
               </div>
@@ -88,9 +88,10 @@ export default function DocumentAILoader({ documentName = 'Document' }) {
 
         {/* Security Footnote */}
         <p className="text-[11px] font-medium text-slate-500 mt-6 flex items-center gap-1.5 bg-white/60 px-4 py-1.5 rounded-full border border-slate-200 shadow-xs">
-          <span>🔒</span> Ephemeral Cloud Session • Powered by Google Document AI & Gemini
+          <span>ðŸ”’</span> Ephemeral Cloud Session â€¢ Powered by Google Document AI & Gemini
         </p>
       </div>
     </div>
   );
 }
+
