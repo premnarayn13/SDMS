@@ -40,63 +40,94 @@ class AgentService:
         is_voice: bool = False
     ) -> ChatResponse:
         """
-        Process user chat message and execute appropriate command.
-        
+        Process user chat message through the AgentPipeline.
+
+        Routes ALL messages (text and voice) through the new intelligent pipeline.
+        Falls back to the legacy keyword system only if the pipeline is unavailable.
+
         Args:
             user_id: User UUID
             message: User message text
-            is_voice: Whether message is from voice input
-            
+            is_voice: Whether message is from voice input (transcription already done)
+
         Returns:
             ChatResponse with results and suggestions
         """
         try:
             # Save user message to history
             await self._save_chat_history(user_id, message, 'user')
-            
-            # Parse command
-            if is_voice:
-                command = voice_parser.parse(message)
-            else:
-                command = self._parse_text_command(message)
-            
-            # Execute command
-            result = await self._execute_command(user_id, command)
-            
-            # Extract action_data if present in result
-            action_data = None
-            if result and isinstance(result, dict) and 'action_data' in result:
-                action_data = result.pop('action_data')
-            
-            # Generate response message
-            response_text = self._generate_response_text(command, result)
-            
-            # Get suggestions
-            suggestions = voice_parser.get_suggestions(message)
-            
-            # Save assistant response
-            await self._save_chat_history(
-                user_id,
-                response_text,
-                'assistant',
-                command_type=command.get('command'),
-                results=result
-            )
-            
-            return ChatResponse(
-                message=response_text,
-                command_type=command.get('command'),
-                results=result,
-                action_data=action_data,
-                suggestions=suggestions
-            )
-        
+
+            # ── New Pipeline Path ──────────────────────────────────────────
+            try:
+                from .agent_pipeline import get_agent_pipeline
+                pipeline = get_agent_pipeline()
+                agent_response = await pipeline.process(
+                    user_id=str(user_id),
+                    message=message
+                )
+
+                response_text = agent_response.message
+                actions_executed = agent_response.actions_executed
+
+                await self._save_chat_history(
+                    user_id,
+                    response_text,
+                    'assistant',
+                    command_type='autonomous',
+                    results={
+                        'status': agent_response.status,
+                        'actions_executed': actions_executed,
+                        'tool_calls_count': agent_response.tool_calls_count,
+                        'successful_count': agent_response.successful_count,
+                    }
+                )
+
+                return ChatResponse(
+                    message=response_text,
+                    command_type='autonomous',
+                    results={'actions_executed': actions_executed} if actions_executed else None,
+                    suggestions=[]
+                )
+
+            except ImportError:
+                # ── Legacy Fallback (no pipeline available) ────────────────
+                if is_voice:
+                    command = voice_parser.parse(message)
+                else:
+                    command = self._parse_text_command(message)
+
+                result = await self._execute_command(user_id, command)
+
+                action_data = None
+                if result and isinstance(result, dict) and 'action_data' in result:
+                    action_data = result.pop('action_data')
+
+                response_text = self._generate_response_text(command, result)
+                suggestions = voice_parser.get_suggestions(message)
+
+                await self._save_chat_history(
+                    user_id,
+                    response_text,
+                    'assistant',
+                    command_type=command.get('command'),
+                    results=result
+                )
+
+                return ChatResponse(
+                    message=response_text,
+                    command_type=command.get('command'),
+                    results=result,
+                    action_data=action_data,
+                    suggestions=suggestions
+                )
+
         except Exception as e:
-            logger.error(f"Chat processing error: {str(e)}")
+            logger.error(f"Chat processing error: {str(e)}", exc_info=True)
             return ChatResponse(
-                message=f"Sorry, I encountered an error: {str(e)}",
+                message=f"Sorry, I encountered an error processing your request. Please try again.",
                 command_type='error'
             )
+
     
     async def _execute_command(
         self,
