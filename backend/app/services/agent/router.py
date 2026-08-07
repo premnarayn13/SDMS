@@ -1,11 +1,15 @@
 """
 Agent Router
 FastAPI routes for Docky AI Agent.
+
+DESIGN:
+  This router is HTTP-only — no business logic lives here.
+  All intelligence is delegated to AgentPipeline.
+  Endpoints only handle: auth, request parsing, response serialization.
 """
 from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSocketDisconnect, Query
 from typing import List
 import logging
-import re
 import json
 import asyncio
 
@@ -19,41 +23,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
-_DESTRUCTIVE_PATTERNS = {
-    "delete_file": re.compile(r"\b(delete|remove|trash|erase)\b", flags=re.IGNORECASE),
-    "delete_folder": re.compile(r"\b(delete\s+folder|remove\s+folder|trash\s+folder)\b", flags=re.IGNORECASE),
-    "empty_trash": re.compile(r"\b(empty\s+trash|clear\s+trash|permanently\s+delete)\b", flags=re.IGNORECASE),
-}
-
-
-def _detect_destructive_actions(text: str) -> List[str]:
-    message = (text or "").strip()
-    if not message:
-        return []
-
-    matches: List[str] = []
-    for action_name, pattern in _DESTRUCTIVE_PATTERNS.items():
-        if pattern.search(message):
-            matches.append(action_name)
-    return matches
-
-
-def _build_confirmation_response(message: str, blocked_actions: List[str]) -> dict:
-    return {
-        "message": (
-            "Safety mode is ON. I detected a potentially destructive request "
-            f"({', '.join(blocked_actions)}). Confirm to proceed."
-        ),
-        "actions_executed": [],
-        "status": "needs_confirmation",
-        "tool_calls_count": 0,
-        "successful_count": 0,
-        "no_tools_needed": False,
-        "confirmation_required": True,
-        "blocked_actions": blocked_actions,
-        "suggested_confirmation_message": message,
-    }
-
 
 def _extract_access_token_from_websocket(websocket: WebSocket, query_token: str | None) -> str | None:
     if query_token:
@@ -65,41 +34,7 @@ def _extract_access_token_from_websocket(websocket: WebSocket, query_token: str 
     return None
 
 
-def _is_chat_only_request(text: str) -> bool:
-    message = (text or "").strip().lower()
-    if not message:
-        return True
-
-    action_verbs = [
-        "open", "download", "rename", "move", "delete", "trash", "tag", "favorite", "favourite",
-        "star", "create folder", "share", "convert", "extract", "find duplicates", "search files",
-        "list recent", "analytics", "storage", "batch", "restore", "upload",
-    ]
-    if any(verb in message for verb in action_verbs):
-        return False
-
-    if re.search(r"\b[A-Za-z0-9 _-]+\.(pdf|docx?|xlsx?|pptx?|txt|csv|md|png|jpe?g|gif|bmp|webp)\b", message, flags=re.IGNORECASE):
-        return False
-
-    chat_markers = [
-        "hi", "hello", "hey", "who are you", "what is your name", "what can you do", "how can you help",
-        "how could you help", "help me", "can you chat", "talk to me", "thank you", "thanks", "how are you",
-    ]
-    if any(marker in message for marker in chat_markers):
-        return True
-
-    return "?" in message and len(message.split()) <= 30
-
-
-def _build_chat_only_response(text: str) -> str:
-    message = (text or "").strip().lower()
-    if any(marker in message for marker in ["name", "who are you"]):
-        return "I’m Docky, your AI assistant in DocMatrix. I can chat with you and also help manage files when you ask for actions."
-    if any(marker in message for marker in ["help", "what can you do", "how can you help", "how could you help"]):
-        return "I can help in two ways: normal chat responses, and file actions like search, rename, move, tag, favorite, and conversions when you ask explicitly."
-    if any(marker in message for marker in ["hi", "hello", "hey", "how are you"]):
-        return "Hi! I’m here and ready. You can chat normally, or tell me a file task to execute."
-    return "I understand. I’m here to chat and help. If you want an action, tell me clearly what file operation to run."
+# (Intent detection is now handled exclusively by AgentPipeline / IntentClassifier)
 
 
 def get_agent_service() -> AgentService:
@@ -145,59 +80,27 @@ async def execute_autonomous_action(
     agent: AgentService = Depends(get_agent_service)
 ):
     """
-    Execute autonomous agent action.
-    
-    This endpoint uses the LLM-powered orchestrator to understand
-    natural language requests and execute multi-step actions.
-    
-    Replaces the pattern-matching chat endpoint with full autonomy.
+    Execute autonomous agent action via the new AgentPipeline.
+    Understands natural language, multi-step requests, and all platform features.
     """
-    from .orchestrator import get_orchestrator
-    
+    from .agent_pipeline import get_agent_pipeline
+
     try:
-        if request.safe_mode and not request.confirmed:
-            blocked_actions = _detect_destructive_actions(request.message)
-            if blocked_actions:
-                response = _build_confirmation_response(request.message, blocked_actions)
-                await agent.save_autonomous_execution(
-                    user_id=user["id"],
-                    user_message=request.message,
-                    execution_response=response
-                )
-                return AgentExecutionResponse(**response)
-
-        if _is_chat_only_request(request.message):
-            response = {
-                "message": _build_chat_only_response(request.message),
-                "actions_executed": [],
-                "status": "completed",
-                "tool_calls_count": 0,
-                "successful_count": 0,
-                "no_tools_needed": True,
-            }
-            await agent.save_autonomous_execution(
-                user_id=user["id"],
-                user_message=request.message,
-                execution_response=response
-            )
-            return AgentExecutionResponse(**response)
-
-        orchestrator = get_orchestrator()
-        
-        response = await orchestrator.process_message(
+        pipeline = get_agent_pipeline()
+        agent_response = await pipeline.process(
             user_id=user["id"],
-            message=request.message,
-            include_context=request.include_context
+            message=request.message
         )
+        response = agent_response.model_dump()
 
         await agent.save_autonomous_execution(
             user_id=user["id"],
             user_message=request.message,
             execution_response=response
         )
-        
+
         return AgentExecutionResponse(**response)
-        
+
     except Exception as e:
         logger.error(f"Execute endpoint error: {str(e)}", exc_info=True)
         raise HTTPException(
@@ -222,8 +125,8 @@ async def realtime_agent_websocket(
         await websocket.close(code=4401)
         return
 
-    from .orchestrator import get_orchestrator
-    orchestrator = get_orchestrator()
+    from .agent_pipeline import get_agent_pipeline
+    pipeline = get_agent_pipeline()
     agent = AgentService(get_service_db())
     send_lock = asyncio.Lock()
     active_task: asyncio.Task | None = None
@@ -237,35 +140,13 @@ async def realtime_agent_websocket(
         nonlocal active_request_id
         try:
             await safe_send({"type": "status", "request_id": request_id, "stage": "planning"})
+            await safe_send({"type": "status", "request_id": request_id, "stage": "executing"})
 
-            if safe_mode and not confirmed:
-                blocked_actions = _detect_destructive_actions(user_message)
-                if blocked_actions:
-                    response = _build_confirmation_response(user_message, blocked_actions)
-                    await agent.save_autonomous_execution(
-                        user_id=user_id,
-                        user_message=user_message,
-                        execution_response=response
-                    )
-                    await safe_send({"type": "final", "request_id": request_id, "response": response})
-                    return
-
-            if _is_chat_only_request(user_message):
-                response = {
-                    "message": _build_chat_only_response(user_message),
-                    "actions_executed": [],
-                    "status": "completed",
-                    "tool_calls_count": 0,
-                    "successful_count": 0,
-                    "no_tools_needed": True,
-                }
-            else:
-                await safe_send({"type": "status", "request_id": request_id, "stage": "executing"})
-                response = await orchestrator.process_message(
-                    user_id=user_id,
-                    message=user_message,
-                    include_context=include_context
-                )
+            agent_response = await pipeline.process(
+                user_id=user_id,
+                message=user_message
+            )
+            response = agent_response.model_dump()
 
             await agent.save_autonomous_execution(
                 user_id=user_id,
