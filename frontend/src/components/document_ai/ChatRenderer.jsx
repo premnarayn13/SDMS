@@ -1,0 +1,1 @@
+﻿// Clean chat renderer component
