@@ -8,3 +8,6 @@ frontend/.env
 *.log
 docmatrix_data.json
 .DS_Store
+
+credentials/
+*.json
