@@ -40,6 +40,8 @@ from .services import (
     #mega_router,
 )
 from .services.agent import agent_router
+from .ai.document_ai.router import router as ai_document_router
+
 
 # Configure logging
 logging.basicConfig(
@@ -142,8 +144,12 @@ app.include_router(drive_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(folders_router, prefix="/api/v1")
 app.include_router(activity_router, prefix="/api/v1")
-#app.include_router(mega_router, prefix="/api/v1")
-app.include_router(agent_router, prefix="/api/v1")  # Docky AI Agent
+app.include_router(agent_router, prefix="/api/v1")        # /api/v1/agent/*
+app.include_router(ai_document_router, prefix="/api/v1")  # /api/v1/ai/document/*
+app.include_router(ai_document_router)                     # /ai/document/*
+
+
+
 
 
 # =====================================================
