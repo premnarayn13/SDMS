@@ -119,7 +119,7 @@ class DocumentExtractor:
         return text
 
     def _extract_pdf_local(self, file_path: str) -> Dict[str, Any]:
-        """Local PDF extractor using pdfplumber or pypdf."""
+        """Local PDF extractor with PyMuPDF & OCR fallback for scanned image PDFs."""
         pages = []
         full_text_list = []
 
@@ -128,28 +128,88 @@ class DocumentExtractor:
             with pdfplumber.open(file_path) as pdf:
                 for idx, page in enumerate(pdf.pages, start=1):
                     txt = page.extract_text() or ""
-                    pages.append({"page_number": idx, "text": txt})
-                    full_text_list.append(txt)
+                    pages.append({"page_number": idx, "text": txt.strip()})
+                    full_text_list.append(txt.strip())
         except Exception:
             try:
                 from pypdf import PdfReader
                 reader = PdfReader(file_path)
                 for idx, page in enumerate(reader.pages, start=1):
                     txt = page.extract_text() or ""
-                    pages.append({"page_number": idx, "text": txt})
-                    full_text_list.append(txt)
+                    pages.append({"page_number": idx, "text": txt.strip()})
+                    full_text_list.append(txt.strip())
             except Exception as e:
-                logger.error(f"Error reading PDF locally: {e}")
-                pages = [{"page_number": 1, "text": f"[PDF File content from {os.path.basename(file_path)}]"}]
-                full_text_list = [pages[0]["text"]]
+                logger.error(f"Error reading PDF text streams: {e}")
+
+        # Check if text is sparse or empty (Scanned PDF Document)
+        combined_text = "".join(full_text_list).strip()
+        if len(combined_text) < 30:
+            logger.info("PDF text stream empty or sparse. Running Scanned PDF Image OCR...")
+            try:
+                import fitz  # PyMuPDF
+                from PIL import Image
+                import io
+                import base64
+
+                doc = fitz.open(file_path)
+                pages = []
+                full_text_list = []
+
+                for idx, page in enumerate(doc, start=1):
+                    pix = page.get_pixmap(dpi=150)
+                    img = Image.open(io.BytesIO(pix.tobytes("png")))
+                    
+                    ocr_text = ""
+                    # 1. Try PyTesseract OCR
+                    try:
+                        import pytesseract
+                        ocr_text = pytesseract.image_to_string(img).strip()
+                    except Exception as ocr_err:
+                        logger.debug(f"PyTesseract OCR bypass: {ocr_err}")
+
+                    # 2. Fallback to Groq Vision OCR if Tesseract produces no text
+                    if not ocr_text and self.groq_api_key:
+                        try:
+                            from groq import Groq
+                            buffered = io.BytesIO()
+                            img.save(buffered, format="PNG")
+                            img_b64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                            
+                            client = Groq(api_key=self.groq_api_key)
+                            vision_resp = client.chat.completions.create(
+                                model="llama-3.2-11b-vision-preview",
+                                messages=[
+                                    {
+                                        "role": "user",
+                                        "content": [
+                                            {"type": "text", "text": "Transcribe all text from this scanned image page accurately. Output only the verbatim text found."},
+                                            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
+                                        ]
+                                    }
+                                ],
+                                max_tokens=1000
+                            )
+                            ocr_text = vision_resp.choices[0].message.content.strip()
+                        except Exception as vis_err:
+                            logger.warning(f"Groq Vision OCR error on page {idx}: {vis_err}")
+
+                    if not ocr_text:
+                        ocr_text = f"[Scanned Image Page {idx} - No text recognized]"
+
+                    pages.append({"page_number": idx, "text": ocr_text})
+                    full_text_list.append(ocr_text)
+
+                doc.close()
+            except Exception as scanned_err:
+                logger.error(f"Error in scanned PDF OCR pipeline: {scanned_err}")
 
         full_text = "\n\n--- Page Break ---\n\n".join(full_text_list)
         return {
             "raw_text": full_text,
-            "pages": pages,
+            "pages": pages if pages else [{"page_number": 1, "text": full_text}],
             "tables": [],
             "forms": [],
-            "extractor_used": "Local PDF Engine",
+            "extractor_used": "Scanned PDF OCR Engine (PyMuPDF + Tesseract/Vision)",
             "file_size": os.path.getsize(file_path)
         }
 
