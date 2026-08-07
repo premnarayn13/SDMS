@@ -34,6 +34,7 @@ export default function Header({
   onShareClick,
   onMoveClick,
   onBundleClick,
+  onAskAIClick,
   selectedItemsCount = 0,
   user,
   toolbarProps
@@ -74,20 +75,16 @@ export default function Header({
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 overflow-visible">
-      <div className="h-14 px-4 flex items-center gap-3 overflow-visible relative z-50">
-      {/* Empty space where search box used to be to keep flex layout balanced if needed, but flex-1 on actions is better */}
-      <div className="flex-1 min-w-[10px]"></div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-1.5 flex-shrink-0 overflow-x-auto py-1 max-w-full">
-        {/* Ask AI - Static for now */}
+      <div className="h-14 px-4 flex items-center justify-between gap-2 overflow-visible relative z-50">
+      {/* Actions - Shifted Left near Sidebar Edge */}
+      <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto no-scrollbar py-1 pr-2">
+        {/* Ask Dummy AI - Vibrant Purple/Fuchsia Gradient Button */}
         <button
-          onClick={() => {}}
-          className="flex items-center gap-1 text-xs py-1.5 px-2.5 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-all duration-200 whitespace-nowrap"
-          title="Ask Ai"
+          onClick={onAskAIClick}
+          className="flex items-center text-xs py-1.5 px-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white rounded-lg transition-all duration-200 whitespace-nowrap shadow-md font-bold"
+          title="Ask Dummy AI"
         >
-          <Icon name="zap" size={13} />
-          <span>Ask Ai✨</span>
+          <span>Ask Dummy AI</span>
         </button>
 
         {/* Share */}
