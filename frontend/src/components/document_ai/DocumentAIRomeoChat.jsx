@@ -140,7 +140,9 @@ export default function DocumentAIRomeoChat({
                   : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
               }`}
             >
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              <p className="whitespace-pre-wrap">
+                {msg.content ? msg.content.replace(/#{1,6}\s?/g, '').replace(/\*{1,3}/g, '').trim() : ''}
+              </p>
 
               {/* CITATION BADGES */}
               {msg.page_references && msg.page_references.length > 0 && (
