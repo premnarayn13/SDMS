@@ -43,6 +43,7 @@ import VersionCompareModal from './components/VersionCompareModal';
 import StorageManager from './components/StorageManager';
 import BackupRestorePanel from './components/BackupRestorePanel';
 import DockyChat from './components/DockyChat';
+import DocumentAIWorkspace from './components/document_ai/DocumentAIWorkspace';
 import { extractZipArchive } from './utils/compression';
 import { exportHtmlAsDocxBlob } from './utils/docxExport';
 
@@ -53,6 +54,10 @@ function AppContent({ user, onSettingsClick, onLogout }) {
   
   const { toasts, showToast, removeToast } = useToast();
   const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
+  
+  // Document AI Workspace state
+  const [aiWorkspaceItem, setAiWorkspaceItem] = useState(null);
+
   
   // Modal states
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -1356,6 +1361,35 @@ function AppContent({ user, onSettingsClick, onLogout }) {
             else showToast('Select an item to move', 'warning');
           }}
           onBundleClick={handleBundleUp}
+          onAskAIClick={() => {
+            if (selectedItem && selectedItem.type === 'file') {
+              setAiWorkspaceItem(selectedItem);
+              return;
+            }
+            if (selectedItems.length > 0) {
+              const selected = items.find(i => i.id === selectedItems[0]);
+              if (selected && selected.type === 'file') {
+                setAiWorkspaceItem(selected);
+                return;
+              }
+            }
+            if (pdfToolsItem && pdfToolsItem.type === 'file') {
+              setAiWorkspaceItem(pdfToolsItem);
+              return;
+            }
+            const realFiles = items.filter(i => i.type === 'file' && !i.trash && i.name !== 'Document' && i.name !== 'Untitled Document');
+            if (realFiles.length > 0) {
+              setAiWorkspaceItem(realFiles[0]);
+              showToast(`Opening AI Workspace for ${realFiles[0].name}`, 'info');
+            } else {
+              const availableFiles = items.filter(i => i.type === 'file' && !i.trash);
+              if (availableFiles.length > 0) {
+                setAiWorkspaceItem(availableFiles[0]);
+              } else {
+                showToast('Select a document to launch Ask Dummy Ai', 'warning');
+              }
+            }
+          }}
           selectedItemsCount={selectedItems.length}
           onStorageManagerClick={() => setShowStorageManager(true)}
           onBackupRestoreClick={() => setShowBackupRestore(true)}
@@ -1416,72 +1450,132 @@ function AppContent({ user, onSettingsClick, onLogout }) {
         />
 
         {/* Content Area */}
-        <div className="flex-1 p-6 flex gap-6">
-          <div className="flex-1 flex flex-col gap-4">
-            {/* Trash Actions */}
-            {currentView === 'trash' && (
-              <div className="mb-4 space-y-3">
-                <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center gap-3">
-                  <div className="text-sm font-medium text-gray-800">Trash Manager</div>
-                  <div className="text-xs text-gray-500">Items: {primaryItems.length}</div>
-                  <select
-                    value={trashOrderBy}
-                    onChange={(e) => setTrashOrderBy(e.target.value)}
-                    className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
+        {aiWorkspaceItem ? (
+          <DocumentAIWorkspace
+            documentItem={aiWorkspaceItem}
+            allDocuments={items.filter(i => i.type === 'file' && !i.trash)}
+            onClose={() => setAiWorkspaceItem(null)}
+          />
+        ) : (
+          <div className="flex-1 p-6 flex gap-6">
+            <div className="flex-1 flex flex-col gap-4">
+              {/* Trash Actions */}
+              {currentView === 'trash' && (
+                <div className="mb-4 space-y-3">
+                  <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center gap-3">
+                    <div className="text-sm font-medium text-gray-800">Trash Manager</div>
+                    <div className="text-xs text-gray-500">Items: {primaryItems.length}</div>
+                    <select
+                      value={trashOrderBy}
+                      onChange={(e) => setTrashOrderBy(e.target.value)}
+                      className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
+                    >
+                      <option value="recent">Recently Deleted</option>
+                      <option value="oldest">Oldest Deleted</option>
+                      <option value="name">Name A-Z</option>
+                      <option value="size-desc">Size High-Low</option>
+                      <option value="size-asc">Size Low-High</option>
+                      <option value="type">File Type</option>
+                    </select>
+                    <select
+                      value={trashFormatFilter}
+                      onChange={(e) => setTrashFormatFilter(e.target.value)}
+                      className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
+                    >
+                      <option value="all">All Formats</option>
+                      {trashAvailableFormats.map((format) => (
+                        <option key={format} value={format}>{format.toUpperCase()}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={trashLabelFilter}
+                      onChange={(e) => setTrashLabelFilter(e.target.value)}
+                      className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
+                    >
+                      <option value="all">All Labels</option>
+                      {trashAvailableLabels.map((label) => (
+                        <option key={label} value={label}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                  <button
+                    onClick={handleRestoreAllTrash}
+                    className="px-4 py-2.5 rounded-lg bg-amber-500 text-white font-medium text-sm hover:bg-amber-600"
                   >
-                    <option value="recent">Recently Deleted</option>
-                    <option value="oldest">Oldest Deleted</option>
-                    <option value="name">Name A-Z</option>
-                    <option value="size-desc">Size High-Low</option>
-                    <option value="size-asc">Size Low-High</option>
-                    <option value="type">File Type</option>
-                  </select>
-                  <select
-                    value={trashFormatFilter}
-                    onChange={(e) => setTrashFormatFilter(e.target.value)}
-                    className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
+                    Restore All
+                  </button>
+                  <button
+                    onClick={handleEmptyTrash}
+                    className="px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700"
                   >
-                    <option value="all">All Formats</option>
-                    {trashAvailableFormats.map((format) => (
-                      <option key={format} value={format}>{format.toUpperCase()}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={trashLabelFilter}
-                    onChange={(e) => setTrashLabelFilter(e.target.value)}
-                    className="px-2 py-1 border border-gray-200 rounded text-xs bg-white"
-                  >
-                    <option value="all">All Labels</option>
-                    {trashAvailableLabels.map((label) => (
-                      <option key={label} value={label}>{label}</option>
-                    ))}
-                  </select>
+                    Empty Trash
+                  </button>
+                  </div>
                 </div>
+              )}
 
-                <div className="flex gap-2">
-                <button
-                  onClick={handleRestoreAllTrash}
-                  className="px-4 py-2.5 rounded-lg bg-amber-500 text-white font-medium text-sm hover:bg-amber-600"
-                >
-                  Restore All
-                </button>
-                <button
-                  onClick={handleEmptyTrash}
-                  className="px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700"
-                >
-                  Empty Trash
-                </button>
+              {/* Section Title */}
+              <h2 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                {sectionTitle}
+              </h2>
+
+              {splitViewEnabled ? (
+                <div className="flex gap-6">
+                  <div 
+                    className="flex-1"
+                    data-content-area="true"
+                    onMouseDown={handleContentAreaMouseDown}
+                    onContextMenu={(e) => {
+                      if (e.target === e.currentTarget) {
+                        e.preventDefault();
+                        showContextMenu(e, null, false);
+                      }
+                    }}
+                  >
+                    {primaryDocumentContent}
+                  </div>
+                  <div className="w-1/2 min-w-[320px] bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
+                    <div className="px-4 py-3 border-b flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">Split Pane</p>
+                        <p className="font-semibold text-sm">{VIEW_TITLES[secondaryPaneView] || 'Split View'}</p>
+                      </div>
+                      <select
+                        value={secondaryPaneView}
+                        onChange={(e) => setSecondaryPaneView(e.target.value)}
+                        className="px-2 py-1 border border-gray-200 rounded text-xs"
+                      >
+                        {SPLIT_PANE_VIEWS.map(view => (
+                          <option key={view} value={view}>
+                            {VIEW_TITLES[view] || view}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1 min-h-0 p-4 overflow-y-auto">
+                      {secondarySortedItems.length === 0 ? (
+                        <p className="text-sm text-gray-500">No items in this pane.</p>
+                      ) : (
+                        <DocumentGrid
+                          items={secondarySortedItems}
+                          viewMode={viewMode}
+                          selectedItems={[]}
+                          clipboardItems={[]}
+                          clipboardOperation={null}
+                          onItemClick={noop}
+                          onItemDoubleClick={noop}
+                          onContextMenu={noop}
+                          onCheckboxChange={noop}
+                          onFavoriteClick={noop}
+                          onMenuClick={noop}
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Section Title */}
-            <h2 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              {sectionTitle}
-            </h2>
-
-            {splitViewEnabled ? (
-              <div className="flex gap-6">
+              ) : (
                 <div 
                   className="flex-1"
                   data-content-area="true"
@@ -1495,74 +1589,22 @@ function AppContent({ user, onSettingsClick, onLogout }) {
                 >
                   {primaryDocumentContent}
                 </div>
-                <div className="w-1/2 min-w-[320px] bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
-                  <div className="px-4 py-3 border-b flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase text-gray-500">Split Pane</p>
-                      <p className="font-semibold text-sm">{VIEW_TITLES[secondaryPaneView] || 'Split View'}</p>
-                    </div>
-                    <select
-                      value={secondaryPaneView}
-                      onChange={(e) => setSecondaryPaneView(e.target.value)}
-                      className="px-2 py-1 border border-gray-200 rounded text-xs"
-                    >
-                      {SPLIT_PANE_VIEWS.map(view => (
-                        <option key={view} value={view}>
-                          {VIEW_TITLES[view] || view}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex-1 min-h-0 p-4 overflow-y-auto">
-                    {secondarySortedItems.length === 0 ? (
-                      <p className="text-sm text-gray-500">No items in this pane.</p>
-                    ) : (
-                      <DocumentGrid
-                        items={secondarySortedItems}
-                        viewMode={viewMode}
-                        selectedItems={[]}
-                        clipboardItems={[]}
-                        clipboardOperation={null}
-                        onItemClick={noop}
-                        onItemDoubleClick={noop}
-                        onContextMenu={noop}
-                        onCheckboxChange={noop}
-                        onFavoriteClick={noop}
-                        onMenuClick={noop}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="flex-1"
-                data-content-area="true"
-                onMouseDown={handleContentAreaMouseDown}
-                onContextMenu={(e) => {
-                  if (e.target === e.currentTarget) {
-                    e.preventDefault();
-                    showContextMenu(e, null, false);
-                  }
-                }}
-              >
-                {primaryDocumentContent}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Properties Panel */}
-          <PropertiesPanel
-            item={selectedItem}
-            items={items}
-            isOpen={showPropertiesPanel}
-            onClose={() => setShowPropertiesPanel(false)}
-            onOpen={handleOpenFile}
-            onDownload={handleDownload}
-            onShare={() => selectedItem && setShowShareModal(true)}
-            onRename={() => selectedItem && setShowRenameModal(true)}
-          />
-        </div>
+            {/* Properties Panel */}
+            <PropertiesPanel
+              item={selectedItem}
+              items={items}
+              isOpen={showPropertiesPanel}
+              onClose={() => setShowPropertiesPanel(false)}
+              onOpen={handleOpenFile}
+              onDownload={handleDownload}
+              onShare={() => selectedItem && setShowShareModal(true)}
+              onRename={() => selectedItem && setShowRenameModal(true)}
+            />
+          </div>
+        )}
       </main>
 
       {/* Context Menu */}
@@ -1857,8 +1899,8 @@ function AppContent({ user, onSettingsClick, onLogout }) {
         onRefresh={() => actions.loadData()}
       />
 
-      {/* DOCKY AI ASSISTANT - disabled on admin routes */}
-      {!location.pathname.startsWith('/admin') && (
+      {/* DOCKY AI ASSISTANT - disabled on admin routes or inside Document AI Workspace */}
+      {!location.pathname.startsWith('/admin') && !aiWorkspaceItem && (
         <DockyChat 
           onOpenFile={(fileId) => {
             const item = items.find(i => i.id === fileId);
