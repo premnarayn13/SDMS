@@ -89,7 +89,7 @@ class ToolRegistry:
             "reorder_pdf_pages": self.reorder_pdf_pages,
             "duplicate_pdf_pages": self.duplicate_pdf_pages,
             "password_protect_pdf": self.password_protect_pdf,
-            "remove_pdf_password": self.remove_pdf_password,
+            "remove_pdf_password": self.unprotect_document,
             "protect_document": self.protect_document,
             "unprotect_document": self.unprotect_document,
             "add_pdf_watermark": self.add_pdf_watermark,
@@ -430,12 +430,21 @@ class ToolRegistry:
                 if not q:
                     return {"success": True, "files": [], "count": 0, "action": "search"}
 
+                q_no_ext = q.rsplit(".", 1)[0] if "." in q else q
+
                 matches = []
                 for document in documents:
                     name = (document.get("display_name") or document.get("original_name") or "").lower()
+                    name_no_ext = name.rsplit(".", 1)[0] if "." in name else name
                     tags = [str(tag).lower() for tag in (document.get("tags") or [])]
-                    name_match = q in name
-                    tag_match = any(q in tag for tag in tags)
+
+                    name_match = (
+                        (q in name)
+                        or (q_no_ext and q_no_ext == name_no_ext)
+                        or (q_no_ext and q_no_ext in name_no_ext)
+                        or (name_no_ext and name_no_ext in q_no_ext)
+                    )
+                    tag_match = any(q in tag or (q_no_ext and q_no_ext in tag) for tag in tags)
 
                     if search_type == "filename" and not name_match:
                         continue
