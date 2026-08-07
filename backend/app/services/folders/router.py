@@ -151,7 +151,7 @@ async def request_delete_otp(
 @router.delete("/{folder_id}")
 async def delete_folder(
     folder_id: str,
-    recursive: bool = Query(False),
+    recursive: bool = Query(True),
     otp: Optional[str] = Query(None),
     user: dict = Depends(get_current_user)
 ):
