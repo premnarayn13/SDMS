@@ -1,48 +1,68 @@
-# Virtual Environment
+# =====================================================
+# DocMatrix Git Ignore Configuration
+# =====================================================
+
+# Environment Variables & Credentials
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+*.pem
+*.key
+Credentials/
+credentials.json
+service_account*.json
+
+# Virtual Environments
 .venv/
 venv/
 env/
+ENV/
 
-# Python
+# Python Cache & Bytecode
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-.Python
-*.so
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Node
+# Node Dependencies & Build Artifacts
 node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+build/
+frontend/build/
+.vercel/
+frontend/.vercel/
 
-# IDE
+# Storage & Temporary Local Uploads
+storage/
+temp/
+tmp/
+*.tmp
+*.log
+logs/
+data/db/*.db
+data/cache/*
+data/storage/blobs/*
+data/storage/temp/*
+
+# OS & Editor Artifacts
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-logs/*.log
-*.log
-
-# Data (keep structure, ignore contents)
-data/db/*.db
-data/cache/*
-data/storage/blobs/*
-data/storage/temp/*
-data/backups/*
-
-# Environment
-.env
-.env.local
-backend/.env
-
-# Test files
-*.txt
-!backend/runtime.txt
+# Temporary Script Artifacts
 test_*.py
 check_*.py
 get_*.py

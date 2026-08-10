@@ -1,47 +1,50 @@
 # DocMatrix Backend Dependencies
-# Python 3.11+ required
+# Production-ready requirements for Render deployment (Python 3.10+)
 
-# Web Framework
+# Web Framework & Server
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
+gunicorn>=21.2.0
 python-multipart>=0.0.6
 pydantic>=2.7.0
+pydantic-settings>=2.2.0
 aiofiles>=23.2.1
 
-# Database
+# Database & Supabase Integration
 supabase>=2.4.0
 
 # Authentication & Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0
 cryptography>=42.0.0
 
-# HTTP Client (for Google Drive API)
+# HTTP Clients
 httpx>=0.27.0
+requests>=2.31.0
 
-# Email
+# Email Delivery
 resend>=0.8.0
 
 # Configuration & Environment
-pydantic-settings>=2.2.0
 python-dotenv>=1.0.0
 python-dateutil>=2.9.0
-
-# Utilities
 email-validator>=2.1.0
 msoffcrypto-tool>=5.2.0
 
 # =====================================================
 # DOCKY AGENT & DOCUMENT AI ASSISTANT DEPENDENCIES
 # =====================================================
-# Google Cloud & Gemini AI SDKs
+# AI SDKs & LLM Clients
 google-cloud-documentai>=3.15.0
 google-generativeai>=0.8.6
-
-# Groq API LLM Client
 groq>=0.11.0
 
-# Multi-Format Text Extraction & Data Parsers
+# Multi-Format Text & OCR Extraction
+PyMuPDF>=1.24.0
+pdf2image>=1.17.0
+pytesseract>=0.3.10
+pillow>=10.0.0
 pdfplumber>=0.11.0
 pypdf>=4.0.0
 python-docx>=1.1.0
@@ -49,8 +52,5 @@ openpyxl>=3.1.0
 pandas>=2.0.0
 python-pptx>=0.6.23
 
-# NLP & Machine Learning Analytics
-spacy>=3.7.0
+# Language & NLP Utilities
 langdetect>=1.0.9
-scikit-learn>=1.4.0
-gensim>=4.3.2
