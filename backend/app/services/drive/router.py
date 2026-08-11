@@ -48,19 +48,42 @@ async def initiate_drive_link(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+def get_frontend_base_url(request: Request) -> str:
+    """Dynamically resolve frontend URL from env or request headers."""
+    import os
+    from urllib.parse import urlparse
+    
+    # 1. Environment Variable FRONTEND_URL
+    env_frontend = os.getenv("FRONTEND_URL")
+    if env_frontend and "localhost" not in env_frontend:
+        return env_frontend.rstrip('/')
+
+    # 2. Extract from request Origin or Referer header
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    if origin:
+        parsed = urlparse(origin)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+
+    return settings.FRONTEND_URL.rstrip('/')
+
+
 @router.get("/callback")
 async def drive_oauth_callback(
+    request: Request,
     code: str,
     state: str,
     error: Optional[str] = None
 ):
     """
     Handle OAuth callback from Google.
-    Redirects to frontend with pending drive info.
+    Redirects user directly to the Home Dashboard page (/) with success/error status.
     """
+    frontend_base = get_frontend_base_url(request)
+    
     if error:
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/settings/drive?error={error}"
+            url=f"{frontend_base}/?drive_error={quote(str(error))}"
         )
     
     try:
@@ -69,10 +92,10 @@ async def drive_oauth_callback(
         drive_email = quote(str(result.get("drive_email", "")))
         drive_label = quote(str(result.get("label") or result.get("display_name") or "Drive"))
 
-        # Redirect to frontend success flow (no OTP step required)
+        # Redirect directly to Home Dashboard (/)
         redirect_url = (
-            f"{settings.FRONTEND_URL}/settings/drive"
-            f"?success=true"
+            f"{frontend_base}/"
+            f"?drive_success=true"
             f"&drive_email={drive_email}"
             f"&drive_label={drive_label}"
         )
@@ -80,7 +103,7 @@ async def drive_oauth_callback(
         return RedirectResponse(url=redirect_url)
     except ValueError as e:
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/settings/drive?error={str(e)}"
+            url=f"{frontend_base}/?drive_error={quote(str(e))}"
         )
 
 

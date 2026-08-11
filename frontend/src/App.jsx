@@ -136,19 +136,46 @@ function AppContent({ user, onSettingsClick, onLogout }) {
   useEffect(() => {
     const params = new URLSearchParams(location.search || '');
     const open = params.get('open');
-    if (!open) return;
+    const driveSuccess = params.get('drive_success');
+    const driveEmail = params.get('drive_email');
+    const driveLabel = params.get('drive_label');
+    const driveError = params.get('drive_error');
 
-    if (open === 'trash') {
-      actions.navigateTo('trash');
-    } else if (open === 'activity') {
-      setShowActivityDashboard(true);
-    } else if (open === 'backup') {
-      setShowBackupRestore(true);
-    } else if (open === 'storage') {
-      setShowStorageManager(true);
+    if (driveSuccess) {
+      actions.loadData();
+      const driveMsg = `Connected ${driveLabel || 'Google Drive'}${driveEmail ? ` (${decodeURIComponent(driveEmail)})` : ''}`;
+      if (typeof actions.addToast === 'function') {
+        actions.addToast({
+          type: 'success',
+          title: 'Google Drive Linked',
+          message: driveMsg
+        });
+      } else {
+        alert(`✅ ${driveMsg}`);
+      }
+      params.delete('drive_success');
+      params.delete('drive_email');
+      params.delete('drive_label');
     }
 
-    params.delete('open');
+    if (driveError) {
+      alert(`❌ Google Drive connection error: ${decodeURIComponent(driveError)}`);
+      params.delete('drive_error');
+    }
+
+    if (open) {
+      if (open === 'trash') {
+        actions.navigateTo('trash');
+      } else if (open === 'activity') {
+        setShowActivityDashboard(true);
+      } else if (open === 'backup') {
+        setShowBackupRestore(true);
+      } else if (open === 'storage') {
+        setShowStorageManager(true);
+      }
+      params.delete('open');
+    }
+
     const nextSearch = params.toString();
     const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash || ''}`;
     window.history.replaceState({}, '', nextUrl);

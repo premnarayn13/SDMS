@@ -26,7 +26,17 @@ class GoogleDriveOAuth:
     def __init__(self):
         self.client_id = settings.GOOGLE_CLIENT_ID
         self.client_secret = settings.GOOGLE_CLIENT_SECRET
-        self.redirect_uri = settings.GOOGLE_DRIVE_REDIRECT_URI
+    
+    @property
+    def redirect_uri(self) -> str:
+        import os
+        env_uri = os.getenv("GOOGLE_DRIVE_REDIRECT_URI")
+        if env_uri:
+            return env_uri
+        render_url = os.getenv("RENDER_EXTERNAL_URL")
+        if render_url:
+            return f"{render_url.rstrip('/')}/api/v1/drive/callback"
+        return settings.GOOGLE_DRIVE_REDIRECT_URI
     
     def get_auth_url(self, state: Optional[str] = None) -> str:
         """Generate Google OAuth URL for Drive access"""
