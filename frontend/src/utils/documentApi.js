@@ -31,8 +31,8 @@ const resolveApiBaseUrl = () => {
   return normalizedConfigured;
 };
 
-const API_BASE_URL = resolveApiBaseUrl();
-const API_V1 = `${API_BASE_URL}/api/v1`;
+export const API_BASE_URL = resolveApiBaseUrl();
+export const API_V1 = `${API_BASE_URL}/api/v1`;
 
 // Create axios instance with auth
 const createAuthApi = (baseUrl) => {
