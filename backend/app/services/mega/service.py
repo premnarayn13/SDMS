@@ -16,7 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import logging
 import os
 
-from mega import Mega
+try:
+    from mega import Mega
+except ImportError:
+    Mega = None
 
 from ...db_supabase import get_service_db
 from ...config import settings

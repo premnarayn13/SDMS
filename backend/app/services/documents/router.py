@@ -1,7 +1,7 @@
 """
 Documents API Router
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request
 from fastapi.responses import StreamingResponse, Response
 from typing import Optional, List
 from pydantic import BaseModel
@@ -464,20 +464,22 @@ async def get_shares(
 @router.post("/{document_id}/share-link")
 async def create_public_share_link(
     document_id: str,
+    request: Request,
     user: dict = Depends(get_current_user)
 ):
     """
     Generate public share link
     """
-
     try:
         result = await documents_service.generate_public_link(
             user["id"],
             document_id
         )
+        from ..drive.router import get_frontend_base_url
+        frontend_base = get_frontend_base_url(request)
 
         return {
-            "url": f"http://localhost:3000/share/{result['token']}",
+            "url": f"{frontend_base}/share/{result['token']}",
             "token": result["token"]
         }
 

@@ -31,6 +31,7 @@ python-dotenv>=1.0.0
 python-dateutil>=2.9.0
 email-validator>=2.1.0
 msoffcrypto-tool>=5.2.0
+mega.py>=1.0.8
 
 # =====================================================
 # DOCKY AGENT & DOCUMENT AI ASSISTANT DEPENDENCIES

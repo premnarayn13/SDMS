@@ -13,9 +13,9 @@ const resolveSettingsApiBaseUrl = () => {
     return normalizedConfigured;
   }
 
-  // Use same-origin by default so hosted deployments work without hardcoded hosts.
+  // Use configured URL or fallback to live Render backend
   if (!import.meta.env.DEV) {
-    return '';
+    return normalizedConfigured || 'https://docmatrix-api.onrender.com';
   }
 
   if (import.meta.env.DEV) {

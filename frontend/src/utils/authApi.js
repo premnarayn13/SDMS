@@ -25,7 +25,7 @@ const resolveAuthApiBaseUrl = () => {
     }
   }
 
-  return '';
+  return normalizedConfigured || 'https://docmatrix-api.onrender.com';
 };
 
 const API_BASE_URL = resolveAuthApiBaseUrl();

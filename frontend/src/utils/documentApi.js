@@ -9,9 +9,9 @@ const resolveApiBaseUrl = () => {
   const configured = (import.meta.env.VITE_API_URL || '').trim();
   const normalizedConfigured = configured.replace(/\/+$/, '');
 
-  // In production, use configured URL (or empty for same-origin)
+  // In production, use configured URL (or fallback to live Render backend)
   if (!import.meta.env.DEV) {
-    return normalizedConfigured;
+    return normalizedConfigured || 'https://docmatrix-api.onrender.com';
   }
 
   // In dev, if explicitly configured, use it

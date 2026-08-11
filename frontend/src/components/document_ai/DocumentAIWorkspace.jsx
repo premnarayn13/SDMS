@@ -3,6 +3,7 @@ import DocumentAILoader from './DocumentAILoader';
 import DocumentAIDashboard from './DocumentAIDashboard';
 import DocumentAIRomeoChat from './DocumentAIRomeoChat';
 import { tokenUtils } from '../../utils/authApi';
+import { API_V1 } from '../../utils/documentApi';
 
 export default function DocumentAIWorkspace({ documentItem, allDocuments = [], onClose }) {
   const [activeDoc, setActiveDoc] = useState(documentItem);
@@ -62,7 +63,7 @@ export default function DocumentAIWorkspace({ documentItem, allDocuments = [], o
 
       try {
         const token = tokenUtils.getAccessToken();
-        const response = await fetch('/api/v1/ai/document/analyze', {
+        const response = await fetch(`${API_V1}/ai/document/analyze`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -3,7 +3,7 @@
  * Provides methods to interact with the Docky AI agent backend.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').trim() || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://docmatrix-api.onrender.com');
 const API_BASE = `${API_BASE_URL}/api/v1/agent`;
 const AGENT_REQUEST_TIMEOUT_MS = 90000;
 
