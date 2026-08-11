@@ -30,12 +30,16 @@ class GoogleDriveOAuth:
     @property
     def redirect_uri(self) -> str:
         import os
+        render_url = os.getenv("RENDER_EXTERNAL_URL")
         env_uri = os.getenv("GOOGLE_DRIVE_REDIRECT_URI")
+
+        # If deployed on Render and env_uri is missing or points to localhost, use Render external URL
+        if render_url and (not env_uri or "localhost" in env_uri):
+            return f"{render_url.rstrip('/')}/api/v1/drive/callback"
+
         if env_uri:
             return env_uri
-        render_url = os.getenv("RENDER_EXTERNAL_URL")
-        if render_url:
-            return f"{render_url.rstrip('/')}/api/v1/drive/callback"
+
         return settings.GOOGLE_DRIVE_REDIRECT_URI
     
     def get_auth_url(self, state: Optional[str] = None) -> str:

@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # Google OAuth
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
-    GOOGLE_REDIRECT_URI: str 
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
     GOOGLE_DRIVE_REDIRECT_URI: str = "http://localhost:8000/api/v1/drive/callback"
     
     # Resend Email Service
