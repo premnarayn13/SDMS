@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { API_V1 } from '../../utils/documentApi';
+import { tokenUtils } from '../../utils/authApi';
 
 export default function DocumentAIRomeoChat({
   sessionId,
@@ -47,9 +49,13 @@ export default function DocumentAIRomeoChat({
     setIsSending(true);
 
     try {
-      const response = await fetch('/api/v1/ai/document/chat', {
+      const token = tokenUtils.getAccessToken();
+      const response = await fetch(`${API_V1}/ai/document/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           session_id: sessionId || 'aisess_demo',
           message: query,

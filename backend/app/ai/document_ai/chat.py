@@ -48,6 +48,8 @@ class GroundedDocumentChat:
         """
         raw_text = document_context.get("raw_text", "")
         pages = document_context.get("pages", [])
+        analysis = document_context.get("analysis", {})
+        doc_name = document_context.get("document_name", "Document")
 
         # Formatted pages text with explicit page tags
         pages_text_list = []
@@ -57,6 +59,24 @@ class GroundedDocumentChat:
             pages_text_list.append(f"[Page {page_num}]\n{p_text}")
 
         formatted_doc_content = "\n\n".join(pages_text_list) if pages_text_list else raw_text
+
+        # Append structured intelligence metadata for high accuracy
+        extra_parts = [f"[Document Title]: {doc_name}"]
+        if analysis and isinstance(analysis, dict):
+            if analysis.get("executive_summary"):
+                extra_parts.append(f"[Executive Summary]: {analysis['executive_summary']}")
+            if analysis.get("key_highlights"):
+                extra_parts.append(f"[Key Highlights]: {', '.join(str(h) for h in analysis['key_highlights'])}")
+            if analysis.get("people_mentioned"):
+                extra_parts.append(f"[People Mentioned / User Name]: {', '.join(str(p) for p in analysis['people_mentioned'])}")
+            if analysis.get("organizations"):
+                extra_parts.append(f"[Organizations]: {', '.join(str(o) for o in analysis['organizations'])}")
+            if analysis.get("important_dates"):
+                extra_parts.append(f"[Important Dates]: {', '.join(str(d) for d in analysis['important_dates'])}")
+
+        if extra_parts:
+            joined_extra = "\n".join(extra_parts)
+            formatted_doc_content = f"{joined_extra}\n\n{formatted_doc_content}"
 
         system_prompt = format_chat_prompt(formatted_doc_content)
         answer_text = ""
