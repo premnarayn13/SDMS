@@ -309,8 +309,8 @@ export default function DocumentAIDashboard({ analysis, onOpenRomeoChat }) {
         </div>
       )}
 
-      {/* 6. FULL-LENGTH ROMEO AI CHAT BAR (EXTENDS TILL RIGHT EDGE OF SCREEN) */}
-      <div className="fixed bottom-3 left-0 right-0 px-6 z-40 w-full pointer-events-auto">
+      {/* 6. FULL-LENGTH ROMEO AI CHAT BAR (STARTS AFTER LEFT SIDEBAR) */}
+      <div className="sticky bottom-3 mt-6 z-40 w-full pointer-events-auto">
         <form
           onSubmit={handleSubmitPrompt}
           className="bg-white/95 backdrop-blur-xl border border-blue-200 rounded-3xl p-2.5 shadow-2xl flex items-center gap-3 w-full border-t-2 border-t-blue-500"
@@ -323,7 +323,7 @@ export default function DocumentAIDashboard({ analysis, onOpenRomeoChat }) {
             value={chatPrompt}
             onChange={(e) => setChatPrompt(e.target.value)}
             placeholder="Ask Romeo AI anything about this document..."
-            className="flex-1 text-sm bg-transparent border-none outline-none px-2 text-slate-900 font-medium placeholder-slate-400"
+            className="flex-1 text-sm bg-transparent border-none outline-none px-3 text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:ring-0"
           />
           <button
             type="submit"
