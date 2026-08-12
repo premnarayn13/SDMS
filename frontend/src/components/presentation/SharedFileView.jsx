@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
+import { API_V1 } from '../../utils/documentApi';
 import PublicLayout from './PublicLayout';
 import { FileText, Download, Loader2, AlertCircle } from 'lucide-react';
 
@@ -25,8 +26,15 @@ export default function SharedFileView() {
   }, [token]);
 
   const handleDownload = () => {
-    if (!file) return;
-    window.location.href = `/api/v1/documents/public/${token}/download`;
+    if (!file || !token) return;
+    const downloadUrl = `${API_V1}/documents/public/${token}/download`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', file.name || file.display_name || 'shared-document');
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
