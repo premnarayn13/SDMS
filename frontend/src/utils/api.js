@@ -1,7 +1,22 @@
 import axios from 'axios';
 const ACCESS_TOKEN_KEY = 'docmatrix_access_token';
 
-const API_BASE_URL = '/api';
+const resolveApiBaseUrl = () => {
+  const configured = (import.meta.env.VITE_API_URL || '').trim();
+  const normalizedConfigured = configured.replace(/\/+$/, '');
+
+  if (!import.meta.env.DEV) {
+    return (normalizedConfigured || 'https://docmatrix-api.onrender.com') + '/api';
+  }
+
+  if (normalizedConfigured) {
+    return normalizedConfigured + '/api';
+  }
+
+  return 'http://localhost:8000/api';
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

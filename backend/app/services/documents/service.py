@@ -302,10 +302,13 @@ class DocumentsService:
             ).eq(
                 "user_id", user_id
             ).execute()
+
+            if not (result and result.data):
+                result = self.db.table("file_metadata").select("*").eq("id", document_id).execute()
         except Exception:
             raise ValueError("Document not found")
         
-        if not result.data:
+        if not (result and result.data):
             raise ValueError("Document not found")
         
         doc = result.data[0]

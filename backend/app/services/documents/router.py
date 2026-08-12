@@ -135,6 +135,7 @@ async def list_documents(
 
 
 @router.get("/backups/list")
+@router.get("/backups")
 async def get_backed_up_documents(
     user: dict = Depends(get_current_user)
 ):
