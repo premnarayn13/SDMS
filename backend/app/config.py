@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     
     # Agent Settings
     AGENT_LLM_PROVIDER: str = "groq"  # Primary provider
-    AGENT_LLM_MODEL: str = "llama-3.3-70b-versatile"
+    AGENT_LLM_MODEL: str = "openai/gpt-oss-120b"
     AGENT_MAX_RETRIES: int = 3
     AGENT_TIMEOUT_SECONDS: int = 30
     AGENT_MAX_CONTEXT_MESSAGES: int = 10  # Number of conversation messages to keep in context

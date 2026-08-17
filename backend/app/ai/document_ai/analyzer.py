@@ -176,7 +176,7 @@ class DocumentAnalyzer:
                         {"role": "system", "content": ANALYSIS_SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt}
                     ],
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     temperature=0.2,
                     response_format={"type": "json_object"}
                 )
